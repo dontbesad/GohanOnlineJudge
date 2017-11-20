@@ -1,0 +1,4 @@
+{
+    "comparer"     : "./compiler",
+    "compile_time" : 2000,
+}

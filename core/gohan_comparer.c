@@ -17,13 +17,7 @@ typedef struct {
 
 gohan_config g_config;
 
-void gohan_init();
 int gohan_compare();
-
-void gohan_init() {
-    strcpy(g_config.data_in_path,  "/home/yy/web/YOJ/data.out"); //ans
-    strcpy(g_config.data_out_path, "/home/yy/web/YOJ/user.out");
-}
 
 int gohan_compare() {
 
@@ -59,11 +53,20 @@ int gohan_compare() {
 
     return flag;
 }
-
-int main()
+/**
+ * ./comparer /home/yy/web/YOJ/data.out /home/yy/web/YOJ/user.out
+ */
+int main(int argc, char **argv)
 {
-    gohan_init();
+    if (argc != 3) {
+        exit(0);
+    }
+
+    strcpy(g_config.data_in_path,  argv[1]); //ans
+    strcpy(g_config.data_out_path, argv[2]);
+
     int res = gohan_compare();
+    printf("{\"code\":%d}", res);
     exit(res);
     return 0;
 }

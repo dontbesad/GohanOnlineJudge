@@ -90,6 +90,8 @@ void gohan_judger() {
     pid_t child = fork();
     if (child < 0) {
         g_result.res = SYSERR;
+        printf("{\"code\":0,\"runtime\":0,\"memory\":0}");
+        exit(0);
     }
 
     if (child == 0) {
@@ -220,6 +222,9 @@ _target:
     //printf("judge_result: %d, time: %ldMS, mem: %ldKB\n", judge_res, judge_runtime, judge_memory);
     //printf("Max Mem: %ld\n", max_mem);
 
+    char ret[LEN];
+    sprintf(ret, "{\"code\":%d,\"runtime\":%ld,\"memory\":%ld}", judge_res, judge_runtime, judge_memory);
+    printf("%s", ret);
     exit(judge_res);
 }
 

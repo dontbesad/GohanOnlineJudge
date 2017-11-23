@@ -36,8 +36,8 @@ void delete_exec_file();
 void gohan_compiler() {
     pid_t child = fork();
     if (child < 0) {
-        exit(-1);
-        //printf("err\n");
+        printf("{\"code\":0}");
+        exit(0);
     }
 
     if (child == 0) {
@@ -93,7 +93,7 @@ void master_process(pid_t child) {
         res = SYSERR;
         delete_exec_file();
     }
-    printf("%d\n", res);
+    printf("{\"code\":%d}\n", res);
     exit(res);
 }
 
@@ -105,6 +105,7 @@ void delete_exec_file() {
 
 /**
  * eg:
+ * ./compiler 1000 1000.out "g++ 1000.cpp -o 1000.out 2> CE.txt"
  * ./compiler[编译程序] 1000[编译时间] 1000.out[可执行程序] "g++ 1000.cpp -o 1000.out 2> CE.txt"[命令]
  */
 
@@ -114,20 +115,13 @@ int main(int argc, char **argv)
         /* 参数个数不正确 */
         exit(0);
     }
-    int i = 0;
-    for ( ; i < argc; ++i) {
-        if (argv[i] == NULL) {
-            exit(0);
-        }
-    }
-    i = 0;
+
     /* 设置编译时间限制 */
     g_config.compile_time = 0;
-    int len = strlen(argv[1]);
+    int len = strlen(argv[1]), i = 0;
     for ( ; i < len; ++i) {
         g_config.compile_time = g_config.compile_time * 10 + argv[1][i] - '0';
     }
-    printf("%ld\n", g_config.compile_time);
 
     /*strcpy(g_config.source_file, "1000.cpp");
     strcpy(g_config.exec_file  , "1000.out");
@@ -138,7 +132,6 @@ int main(int argc, char **argv)
 
     /* 设置编译命令 */
     strcpy(compile_cmd, argv[3]);
-    printf("%s\n", compile_cmd);
 
     gohan_compiler();
 

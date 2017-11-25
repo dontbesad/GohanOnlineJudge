@@ -1,11 +1,12 @@
+#include <time.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <mysql/mysql.h> /* installed libmysqlclient-dev */
-#include <pthread.h>
 /* gcc -o gohan gohan.c -lmysqlclient -lpthread */
 
 #define LEN 256
@@ -46,9 +47,35 @@ void gohan();
 void get_judge_result(char *, char *);
 void gohan_core(int, int, int, int);
 int  get_source_code(char *, char *);
+int  get_transform_result(int, int);
+void get_runtime_error(char *, int);
 
-void log_msg(char error[LEN], char msg[1024]) {
+/**
+ * 写入日志 (../log/gohan_error.txt)
+ */
+void log_msg(char error[LEN], const char msg[1024]) {
     //记录信息
+    time_t now;
+    struct tm *timenow;
+    time(&now);
+    timenow = localtime(&now);
+
+    char log_str[1024];
+    char log_dir[LEN];
+    char log_file[LEN];
+
+    sprintf(log_dir,  "%s/log", g_config.workdir);
+    sprintf(log_file, "%s/gohan_error.txt", log_dir);
+    sprintf(log_str,  "%s  %s: %s\n", asctime(timenow), error, msg);
+
+    if (access(log_dir, F_OK) != 0) {
+        mkdir(log_dir, 0775);
+    }
+
+    FILE *fp = fopen(log_file, "a+");
+    fputs(log_str, fp);
+
+    fclose(fp);
 }
 
 void gohan_init() {
@@ -81,7 +108,7 @@ void gohan_init() {
 
 }
 /**
- * 读取配置文件
+ * 读取配置文件gohan.conf
  */
 void read_config_file(char match[LEN], char res[LEN]) {
 
@@ -110,7 +137,7 @@ void read_config_file(char match[LEN], char res[LEN]) {
 
 /**
  * 解析字符串
- * @return        -1:syserr
+ * @return        返回匹配到的字符串,-1:没有匹配到
  */
 int parse_json(char buf[1024], char match[LEN]) {
     char *p = strstr(buf, match);
@@ -129,7 +156,7 @@ int parse_json(char buf[1024], char match[LEN]) {
 
 /**
  * 获取数据库中某个字段(转化为数字)
- * @return        id
+ * @return        返回第1行第index列结果
  */
 int query_db(char sql[1024], int index) {
     MYSQL      mysql_conn;
@@ -137,25 +164,32 @@ int query_db(char sql[1024], int index) {
     MYSQL_ROW  mysql_row;
 
     if (mysql_init(&mysql_conn) == NULL) {
-        log_msg("error", "mysql init error");
+        log_msg("Mysql", mysql_error(&mysql_conn));
+        mysql_close(&mysql_conn);
         return 0;
     }
 
     if (mysql_real_connect(&mysql_conn, g_config.db_host, g_config.db_user, g_config.db_pass, g_config.db_name, 0, NULL, 0) == NULL) {
-        log_msg("error", "mysql connect error");
+        log_msg("Mysql", mysql_error(&mysql_conn));
+        mysql_close(&mysql_conn);
         return 0;
     }
 
     int res = mysql_query(&mysql_conn, sql);
     if (res) {
+        log_msg("Mysql", mysql_error(&mysql_conn));
+        mysql_close(&mysql_conn);
         return 0;
     }
 
     mysql_result = mysql_store_result(&mysql_conn);
     if (mysql_result == NULL) {
+        log_msg("Mysql", mysql_error(&mysql_conn));
+        mysql_close(&mysql_conn);
         return 0;
     }
 
+    mysql_close(&mysql_conn);
     if (mysql_row = mysql_fetch_row(mysql_result)) {
         mysql_free_result(mysql_result);
         int len = strlen(mysql_row[index]), sum = 0, i;
@@ -164,31 +198,39 @@ int query_db(char sql[1024], int index) {
         }
         return sum;
     }
+
     return 0;
 }
 
 /**
  * 更新数据库中提交表的状态
- * @return    update amount
+ * @return   返回更新记录数, 0:失败或者没有更新
  */
 int update_db(char sql[1024]) {
     MYSQL      mysql_conn;
 
     if (mysql_init(&mysql_conn) == NULL) {
-        log_msg("error", "mysql init error");
+        log_msg("Mysql", mysql_error(&mysql_conn));
+        mysql_close(&mysql_conn);
         return 0;
     }
 
     if (mysql_real_connect(&mysql_conn, g_config.db_host, g_config.db_user, g_config.db_pass, g_config.db_name, 0, NULL, 0) == NULL) {
-        log_msg("error", "mysql connect error");
+        log_msg("Mysql", mysql_error(&mysql_conn));
+        mysql_close(&mysql_conn);
         return 0;
     }
 
     int res = mysql_query(&mysql_conn, sql);
     if (res) {
+        log_msg("Mysql", mysql_error(&mysql_conn));
+        mysql_close(&mysql_conn);
         return 0;
     }
-    return mysql_affected_rows(&mysql_conn);
+
+    int affected_rows = mysql_affected_rows(&mysql_conn);
+    mysql_close(&mysql_conn);
+    return affected_rows;
 }
 
 /**
@@ -207,21 +249,28 @@ void pthread_func(int id) {
         pthread_mutex_lock(&mutex);
         usleep(300000);
 
+        printf("pthread %d looping\n", id);
         if (solution_id = query_db(g_config.sql_query, 0)) {
 
+            printf("pthread %d query in queue success\n", id);
             int problem_id = query_db(g_config.sql_query, 1);
             int language   = query_db(g_config.sql_query, 2);
 
             sprintf(update_sql, "UPDATE `sys_solution` SET `result` = 11 WHERE `solution_id` = %d;", solution_id);
             if (!update_db(update_sql)) {
 
+                log_msg("Update", "update result=11(Compiling) error");
+
                 sprintf(update_sql, "UPDATE `sys_solution` SET `result` = 0 WHERE `solution_id` = %d;", solution_id);
+                update_db(update_sql);
                 pthread_mutex_unlock(&mutex);
+
                 continue;
             }
             pthread_mutex_unlock(&mutex);
 
             gohan_core(id, solution_id, problem_id, language);
+            printf("pthread %d exec OK\n", id);
 
             break;
         }
@@ -232,7 +281,11 @@ void pthread_func(int id) {
     pthread_used[id] = 2; //待释放
     pthread_exit(NULL);
 }
-//得到mysql中的代码
+
+/**
+ * 获取提交中的源代码
+ * @return     1:表示成功获取, 0:表示获取失败
+ */
 int get_source_code(char sql[LEN], char source_code[MAX_CODE]) {
     MYSQL      mysql_conn;
     MYSQL_RES  *mysql_result;
@@ -241,25 +294,33 @@ int get_source_code(char sql[LEN], char source_code[MAX_CODE]) {
     source_code[0] = '\0';
 
     if (mysql_init(&mysql_conn) == NULL) {
-        log_msg("error", "mysql init error");
+        log_msg("Mysql", mysql_error(&mysql_conn));
+        mysql_close(&mysql_conn);
         return 0;
     }
 
     if (mysql_real_connect(&mysql_conn, g_config.db_host, g_config.db_user, g_config.db_pass, g_config.db_name, 0, NULL, 0) == NULL) {
-        log_msg("error", "mysql connect error");
+        log_msg("Mysql", mysql_error(&mysql_conn));
+        mysql_close(&mysql_conn);
         return 0;
     }
 
     int res = mysql_query(&mysql_conn, sql);
     if (res) {
+        log_msg("Mysql", mysql_error(&mysql_conn));
+        mysql_close(&mysql_conn);
         return 0;
     }
 
     mysql_result = mysql_store_result(&mysql_conn);
+
     if (mysql_result == NULL) {
+        log_msg("Mysql", mysql_error(&mysql_conn));
+        mysql_close(&mysql_conn);
         return 0;
     }
 
+    mysql_close(&mysql_conn);
     if (mysql_row = mysql_fetch_row(mysql_result)) {
         mysql_free_result(mysql_result);
         strcpy(source_code, mysql_row[0]);
@@ -269,6 +330,13 @@ int get_source_code(char sql[LEN], char source_code[MAX_CODE]) {
     return 0;
 }
 
+/**
+ * 线程中进行评测
+ * @param runid       线程编号
+ * @param solution_id 提交号
+ * @param problem_id  题目编号
+ * @param language    语言
+ */
 void gohan_core(int runid, int solution_id, int problem_id, int language) {
     /* 获取mysql中存储的源代码 */
     char source_code[MAX_CODE];
@@ -276,6 +344,7 @@ void gohan_core(int runid, int solution_id, int problem_id, int language) {
     sprintf(get_code_sql, "SELECT `source_code` FROM `sys_solution` WHERE `solution_id` = %d;", solution_id);
     int res = get_source_code(get_code_sql, source_code);
     if (!res || source_code[0] == '\0') {
+        log_msg("Judge", "source_code is null");
         return ;
     }
 
@@ -293,7 +362,7 @@ void gohan_core(int runid, int solution_id, int problem_id, int language) {
     memory_limit = query_db(sql_query, 1);
 
     if (!time_limit || !memory_limit) {
-        log_msg("error", "query sys_problem table error");
+        log_msg("Judge", "time_limit or memory_limit is nulll");
         return ;
     }
 
@@ -311,29 +380,31 @@ void gohan_core(int runid, int solution_id, int problem_id, int language) {
     sprintf(runpath, "%s/run%d", g_config.workdir, runid); //得到线程运行路径
     sprintf(sourcepath, "%s/%s", runpath, source); //得到源代码文件路径
 
-    if (strstr(runpath, "home") != NULL) {
+    if (strstr(runpath, "home") != NULL && strstr(runpath, "run") != NULL) {
         sprintf(rm_cmd, "rm -rf %s/*", runpath);
     }
 
     //复制源代码到文件中
     if (access(runpath, F_OK) != 0) {
         mkdir(runpath, 0775); //创建线程运行的目录
-
         FILE *fp = fopen(sourcepath, "w");
         if (fp == NULL) {
-            log_msg("error", "write source file error");
+            log_msg("Judge", "write source file error");
         }
-        //fprintf(fp, source_code);
-        fwrite(source_code, sizeof(char), MAX_CODE, fp);
+        int i;
+        for (i = 0; source_code[i]; ++i) {
+            fputc(source_code[i], fp);
+        }
         fclose(fp);
     } else if (access(sourcepath, F_OK) != 0) {
-
-        FILE *fp = fopen("Main.cpp", "w");
+        FILE *fp = fopen(sourcepath, "w");
         if (fp == NULL) {
-            log_msg("error", "write source file error");
+            log_msg("Judge", "write source file error");
         }
-        //fprintf(fp, source_code);
-        fwrite(source_code, sizeof(char), MAX_CODE, fp);
+        int i;
+        for (i = 0; source_code[i]; ++i) {
+            fputc(source_code[i], fp);
+        }
         fclose(fp);
     }
 
@@ -366,7 +437,14 @@ void gohan_core(int runid, int solution_id, int problem_id, int language) {
     if (code != 1) {
         //update sql ...
         code = get_transform_result(1, code); //转换成实际数据库中对应的结果值
-        sprintf(update_sql, "UPDATE `sys_solution` SET `result` = %d WHERE `solution_id` = %d;", code, solution_id);
+        //9:CE的情况
+        if (code == 9) {
+            char error[80000];
+            get_runtime_error(error, runid); //获取ce文件中的信息
+            sprintf(update_sql, "UPDATE `sys_solution` SET `result` = %d, `error` = '%s' WHERE `solution_id` = %d;", code, error, solution_id);
+        } else {
+            sprintf(update_sql, "UPDATE `sys_solution` SET `result` = %d WHERE `solution_id` = %d;", code, solution_id);
+        }
         update_db(update_sql);
         system(rm_cmd); //删除线程运行目录下的所有文件
         return ;
@@ -410,7 +488,7 @@ void get_judge_result(char cmd[LEN], char str[LEN]) {
     memset(buf, '\0', sizeof(buf));
 
     if (pipe(fd) != 0) {
-        log_msg("error", "pipe init error");
+        log_msg("Judge", "pipe init error");
         strcpy(str, "{\"code\":0}");
         return ;
     }
@@ -419,7 +497,7 @@ void get_judge_result(char cmd[LEN], char str[LEN]) {
 
     if (child < 0) {
 
-        log_msg("error", "fork error");
+        log_msg("Judge", "fork error");
 
         strcpy(str, "{\"code\":0}");
 
@@ -441,9 +519,34 @@ void get_judge_result(char cmd[LEN], char str[LEN]) {
         strcpy(str, buf);
     }
 }
+/**
+ * 获取编译错误信息
+ */
+void get_runtime_error(char error[80000], int runid) {
+
+    char ce_file[LEN], ch;
+    sprintf(ce_file, "%s/run%d/ce.txt", g_config.workdir, runid);
+
+    FILE *fp = fopen(ce_file, "r");
+    if (fp == NULL) {
+        log_msg("Judge", "ce file not exist");
+        strcpy(error, "system error.");
+        return ;
+    }
+
+    int i = 0;
+    while ((ch = fgetc(fp)) != EOF) {
+        error[i++] = ch;
+    }
+    error[i] = '\0';
+
+    if (strlen(error) == 0) {
+        strcpy(error, "Compilation Time Limimt Exceeded.");
+    }
+}
 
 /**
- * 将每个阶段的判断过程转化为总的结果
+ * 将每个阶段的判断过程转化为总的评判结果(1:编译,2:评测,3:对比)
  */
 int get_transform_result(int type, int res) {
     if (type == 1) {
@@ -491,7 +594,8 @@ int get_transform_result(int type, int res) {
 }
 
 void gohan() {
-    printf("INIT\n");
+
+    printf("Init\n");
     pthread_t thrd[LEN];
     int status;
     memset(pthread_used, 0, sizeof(pthread_used));

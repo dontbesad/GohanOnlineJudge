@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title></title>
+        <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <link rel="stylesheet" href="css/common.css">
+    </head>
+    <body>
+        <div id="top">
+            <h1><em>Gohan Online Judge</em></h1>
+            <div id="account">
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#register">
+                    注册
+                </button>
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#login">
+                    登录
+                </button>
+            </div>
+            <!-- 登录 -->
+            <div class="modal fade" id="login" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="loginModalLabel">登录页面</h4>
+                  </div>
+                  <div class="modal-body">
+                      <div class="form-group">
+                          <label for="username">用户名</label>
+                          <input type="text" name="username" id="username" class="form-control" placeholder="username">
+                      </div>
+                      <div class="form-group">
+                          <label for="password">密码</label>
+                          <input type="password" name="password" id="password" class="form-control" placeholder="password">
+                      </div>
+                  </div>
+                  <div class="modal-footer">
+                      <button type="button" class="btn btn-success" id="btn_login">登录</button>
+                      <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- 注册 -->
+            <div class="modal fade" id="register" tabindex="-1" role="dialog" aria-labelledby="registerModalLabel">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="registerModalLabel">注册页面</h4>
+                  </div>
+                  <div class="modal-body">
+                      <div class="form-group">
+                          <label for="username">用户名*</label>
+                          <input type="text" name="username" id="username" class="form-control" placeholder="username">
+                      </div>
+                      <div class="form-group">
+                          <label for="password">密码*</label>
+                          <input type="password" name="password" id="password" class="form-control" placeholder="password">
+                      </div>
+                      <div class="form-group">
+                          <label for="password_again">重复输入密码*</label>
+                          <input type="password" name="password_again" id="password_again" class="form-control" placeholder="password again">
+                      </div>
+                      <div class="form-group">
+                          <label for="email">Email</label>
+                          <input type="email" name="email" id="email" class="form-control" placeholder="email">
+                      </div>
+                      <div class="form-group">
+                          <label for="school">学校</label>
+                          <input type="text" name="school" id="school" class="form-control" placeholder="school">
+                      </div>
+                      <div class="form-group">
+                          <label for="description">描述</label>
+                          <textarea class="form-control" id="description" placeholder="description" rows="3"></textarea>
+                      </div>
+                  </div>
+                  <div class="modal-footer">
+                      <button type="button" class="btn btn-success" id="btn_register">完成注册</button>
+                      <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+        </div>
+
+
+        <div id="header">
+            <ul class="nav nav-tabs">
+                <li role="presentation" id="index"><a href="index.html">首页</a></li>
+                <li role="presentation" id="status"><a href="status.html">运行状态</a></li>
+                <li role="presentation" id="problemlist"><a href="problemlist.html">题目列表</a></li>
+                <li role="presentation" id="contestlist"><a href="contestlist.html">比赛列表</a></li>
+                <li role="presentation" id="ranklist"><a href="ranklist.html">排名</a></li>
+                <li role="presentation" id="other"><a href="other.html">更多</a></li>
+            </ul>
+        </div>
+
+        <div id="main">
+            <div id="container">
+
+                <div class="panel panel-default">
+                      <!-- Default panel contents -->
+                      <div class="panel-heading">
+                        <h2 style="text-align:center; margin: 20px 0px;"></h2>
+                        <div class="problem-detail" style="text-align:center; font-size:1.2em;"></div>
+                      </div>
+                      <div class="panel-body">
+                          <strong>题目描述:</strong>
+                          <p class="problem-description"></p>
+                      </div>
+                      <!-- List group -->
+                      <ul class="list-group">
+                        <li class="list-group-item">
+                            <strong>输入:</strong>
+                            <p class="problem-input"></p>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>输出:</strong>
+                            <p class="problem-output"></p>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>样例输入:</strong>
+                            <p class="problem-sample-input"></p>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>样例输出:</strong>
+                            <p class="problem-sample-output"></p>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>提示:</strong>
+                            <p class="problem-hint"></p>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>来源:</strong>
+                            <p class="problem-source"></p>
+                        </li>
+                        <li class="list-group-item">
+                            <button type="button" name="button" class="btn btn-default" data-toggle="modal" data-target="#sourceModal">提交</button>
+
+                            <div class="modal fade" id="sourceModal" tabindex="-1" role="dialog" aria-labelledby="sourceModalLabel">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                            <h4 class="modal-title" id="sourceModalLabel">代码提交</h4>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="form-group">
+                                                <label for="problem_id">题目编号</label>
+                                                <input class="form-control" id="problem_id" name="problem_id" disabled>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="source_code">代码</label>
+                                                <textarea class="form-control" rows="10" id="source_code" name="source_code"></textarea>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="language">语言</label>
+                                                <select class="form-control" id="language" name="language">
+                                                  <option value="1">c</option>
+                                                  <option value="2" selected>c++</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-primary" id="btn_source">提交</button>
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                      </ul>
+                </div>
+            </div>
+        </div>
+
+    </body>
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/require.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            function get_url_param(name) {
+                //构造一个含有目标参数的正则表达式对象
+                var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+                //匹配目标参数
+                var r = window.location.search.substr(1).match(reg);
+                //返回参数值
+                if (r != null) return unescape(r[2]);
+                //不存在时返回null
+                return null;
+            }
+            var id = get_url_param('id');
+            $.ajax({
+                url: '../api/index.php/problem/show/' + id,
+                type: 'GET',
+                contentType: 'application/json; charset=utf-8',
+                success: function(response) {
+                    show_problem(response.data);
+                },
+                error: function() {
+                    console.log("Error");
+                }
+            })
+
+            var show_problem = function(data) {
+                $('#problem_id').val(data.problem_id);
+
+                $('#container h2').html(data.title);
+
+                var detail = '<span class="label label-default">时间限制:'+data.time_limit+'MS</span>&nbsp;'
+                    + '<span class="label label-default">内存限制:'+data.memory_limit+'KB</span>';
+                $('#container .problem-detail').html(detail);
+
+                var description = data.description.replace('\n', '<br>').replace(' ', '&nbsp;');
+                $('#container .problem-description').html(description);
+
+                var input = data.input.replace('\n', '<br>').replace(' ', '&nbsp;');
+                $('#container .problem-input').html(input);
+
+                var output = data.output.replace('\n', '<br>').replace(' ', '&nbsp;');
+                $('#container .problem-output').html(output);
+
+                var sample_input = data.sample_input.replace('\n', '<br>').replace(' ', '&nbsp;');
+                $('#container .problem-sample-input').html(sample_input);
+
+                var sample_output = data.sample_output.replace('\n', '<br>').replace(' ', '&nbsp;');
+                $('#container .problem-sample-output').html(sample_output);
+
+                var hint = data.hint.replace('\n', '<br>').replace(' ', '&nbsp;');
+                $('#container .problem-hint').html(hint);
+
+                var source = data.source.replace('\n', '<br>').replace(' ', '&nbsp;');
+                $('#container .problem-source').html(source);
+
+            }
+
+            var submit_source = {
+                init: function() {
+                    $('#btn_source').click(function() {
+                        submit_source.request();
+                    });
+                },
+                request: function() {
+                    var post_data = {
+                        problem_id: $('#problem_id').val(),
+                        language: $('#language').val(),
+                        source_code: $('#source_code').val()
+                    };
+                    $.ajax({
+                        url: '../api/index.php/problem/submit',
+                        type: 'POST',
+                        data: JSON.stringify(post_data),
+                        contentType: 'application/json; charset=utf-8',
+                        success: function(response) {
+                            if (!response.code && response.data.login) {
+                                console.log(response.data);
+                                alert('提交成功');
+                                $('#sourceModal').modal('hide');
+                            } else if (!response.code) {
+                                alert('请先登录');
+                                $('#sourceModal').modal('hide');
+                                $('#login').modal('show');
+                            } else {
+                                alert(response.msg);
+                            }
+                        },
+                        error: function() {
+                            console.log("error");
+                        }
+                    });
+                }
+            };
+            submit_source.init();
+
+        });
+    </script>
+    </script>
+</html>

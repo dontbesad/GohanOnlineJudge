@@ -1,0 +1,17 @@
+h1,h2,h3,h4,p {
+    margin: 0;
+    padding: 0;
+}
+#top {
+    padding: 1em 8px;
+}
+#top h1 {
+    display: inline-block;
+}
+
+#main {
+    padding: 20px 10%;
+}
+#account {
+    float: right;
+}

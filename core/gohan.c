@@ -444,7 +444,7 @@ void gohan_core(int runid, int solution_id, int problem_id, int language) {
         if (code == 9) {
             char error[80000];
             get_runtime_error(error, runid); //获取ce文件中的信息
-            sprintf(update_sql, "UPDATE `sys_solution` SET `result` = %d, `error` = '%s' WHERE `solution_id` = %d;", code, error, solution_id);
+            sprintf(update_sql, "SET NAMES UTF8; UPDATE `sys_solution` SET `result` = %d, `error` = '%s' WHERE `solution_id` = %d;", code, error, solution_id);
         } else {
             sprintf(update_sql, "UPDATE `sys_solution` SET `result` = %d WHERE `solution_id` = %d;", code, solution_id);
         }
@@ -459,9 +459,11 @@ void gohan_core(int runid, int solution_id, int problem_id, int language) {
     update_db(update_sql);
 
     get_judge_result(judger_cmd, str);
+    printf("judger result str: %s\n", str);
     code    = parse_json(str, "\"code\":");
-    runtime = parse_json(str, "\"runtime\""); //获取运行结果
-    memory  = parse_json(str, "\"memory\"");
+    runtime = parse_json(str, "\"runtime\":"); //获取运行结果
+    memory  = parse_json(str, "\"memory\":");
+    printf("runtime: %d\n", runtime);
 
     if (code != 1) {
         //update sql ...

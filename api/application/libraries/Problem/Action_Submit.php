@@ -17,7 +17,7 @@ class Action_Submit {
                 }
             }
         }
-        
+
         if (strlen($data['source_code']) > self::CODE_MAX_LENGTH) {
             throw new Exception('代码不得超过'.self::CODE_MAX_LENGTH.'字节', 100);
         } else if (empty(Oj::get_problem($data['problem_id']))) {
@@ -32,9 +32,9 @@ class Action_Submit {
         $login_data = parse_login();
         $ret['login'] = !empty($login_data);
 
-        $data = $this->filter();
 
         if ($ret['login']) {
+            $data = $this->filter();
 
             $solution_data = [
                 'problem_id'   => $data['problem_id'],

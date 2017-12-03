@@ -27,6 +27,7 @@ ALTER TABLE `sys_solution` ADD INDEX i_contest_id(`contest_id`);
 ALTER TABLE `sys_solution` ADD INDEX i_problem_id(`problem_id`);
 ALTER TABLE `sys_solution` ADD INDEX i_result(`result`);
 ALTER TABLE `sys_solution` ADD INDEX i_language(`language`);
+ALTER TABLE `sys_solution` AUTO_INCREMENT=1000;
 
 
 CREATE TABLE `sys_problem` (
@@ -73,8 +74,8 @@ ALTER TABLE `sys_contest_problem` ADD INDEX i_contest(`contest_id`, `problem_id`
 
 CREATE TABLE `sys_user` (
     `user_id`     INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `username`    VARCHAR(50) NOT NULL UNIQUE, #用于用户登录名，可以修改，但是不能重名
-    `password`    VARCHAR(300) NOT NULL DEFAULT '', #password_hash password_verify
+    `username`    VARCHAR(20) NOT NULL UNIQUE, #用于用户登录名，可以修改，但是不能重名
+    `password`    VARCHAR(30) NOT NULL DEFAULT '',
     `reg_time`    DATETIME DEFAULT CURRENT_TIMESTAMP,
     `school`      VARCHAR(100) DEFAULT '',
     `email`       VARCHAR(50) DEFAULT '',

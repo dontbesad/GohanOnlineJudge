@@ -45,6 +45,7 @@ class Oj extends CI_Model {
         $solution_list = get_db()
             ->select('solution_id,problem_id,user_id,contest_id,runtime,memory,result,submit_time,code_length,language')
             ->limit($limit, $offset)
+            ->order_by('solution_id', 'DESC')
             ->get_where('sys_solution', ['valid' => $valid])
             ->result_array();
         return $solution_list;
@@ -122,6 +123,12 @@ class Oj extends CI_Model {
     static public function insert_solution($data) {
         get_db()
             ->insert('sys_solution', $data);
+        return get_db()->insert_id();
+    }
+    //添加题目
+    static public function insert_problem($data) {
+        get_db()
+            ->insert('sys_problem', $data);
         return get_db()->insert_id();
     }
 }

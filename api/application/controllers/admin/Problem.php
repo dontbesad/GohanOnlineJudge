@@ -14,6 +14,7 @@ class Problem extends MY_Controller {
 		} catch (Exception $e) {
 			$ret['msg']  = $e->getMessage();
 			$ret['code'] = $e->getCode();
+
 		}
 		$this->json_response($ret);
 	}

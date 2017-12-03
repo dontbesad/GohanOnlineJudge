@@ -10,10 +10,12 @@
 /* gcc -o gohan gohan.c -lmysqlclient -lpthread */
 
 #define LEN 256
-#define MAX_CODE 131072
+#define MAX_CODE 100000
 
 typedef struct {
     char workdir[LEN];
+
+    char datadir[LEN];
 
     char sql_query[LEN];
 
@@ -82,7 +84,7 @@ void gohan_init() {
 
     read_config_file("OJ_WORKDIR=", g_config.workdir);
 
-    read_config_file("OJ_SQL_QUERY=", g_config.sql_query);
+    read_config_file("OJ_DATADIR=", g_config.datadir);
 
     read_config_file("OJ_COMPILER=", g_config.compiler);
 
@@ -97,6 +99,8 @@ void gohan_init() {
     read_config_file("OJ_DB_USER=",  g_config.db_user);
 
     read_config_file("OJ_DB_PASS=",  g_config.db_pass);
+
+    strcpy(g_config.sql_query, "SELECT `solution_id`,`problem_id`,`language` FROM `sys_solution` WHERE `result` = 0;");
 
     g_config.max_thread = 0;
     char max_thread_str[LEN];
@@ -114,8 +118,7 @@ void read_config_file(char match[LEN], char res[LEN]) {
 
     strcpy(res, "\0");
 
-    FILE *fp = fopen("gohan.conf", "r");
-
+    FILE *fp = fopen("./core/gohan.conf", "r");
     if (fp == NULL) {
         return ;
     }
@@ -419,8 +422,8 @@ void gohan_core(int runid, int solution_id, int problem_id, int language) {
                 g_config.compiler, compile_time, runpath, exec, runpath, source, runpath, exec, runpath);
     }
     //这里后期需要修改gohan_judger.c文件中的execl运行可执行文件命令
-    sprintf(judger_cmd, "%s %d %d %s/%s %s/data/%d/data.in %s/%s",
-        g_config.judger, time_limit, memory_limit, runpath, exec, g_config.workdir, problem_id, runpath, user_data);
+    sprintf(judger_cmd, "%s %d %d %s/%s %s/%d/data.in %s/%s",
+        g_config.judger, time_limit, memory_limit, runpath, exec, g_config.datadir, problem_id, runpath, user_data);
 
     sprintf(comparer_cmd, "%s %s/data/%d/data.out %s/%s",
         g_config.comparer, g_config.workdir, problem_id, runpath, user_data);

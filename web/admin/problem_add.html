@@ -1,7 +1,57 @@
-<div class="table">
-    <tr>
-        <td>hello</td><td>world</td>
-    </tr>
-</div>
-<a href="#">baidu</a>
-<p>text</p>
+<h2>添加题目</h2>
+<form id="problem_add" method="post" enctype="multipart/form-data">
+      <div class="form-group">
+          <label for="title">标题</label>
+          <input type="text" class="form-control" id="title" placeholder="title" name="title">
+      </div>
+      <div class="form-group">
+          <label for="time_limit">时间限制(MS)</label>
+          <input type="text" class="form-control" id="time_limit" placeholder="time_limit" name="time_limit" value="1000">
+      </div>
+      <div class="form-group">
+          <label for="memory_limit">内存限制(KB)</label>
+          <input type="text" class="form-control" id="memory_limit" placeholder="memory_limit" name="memory_limit" value="32768">
+      </div>
+      <div class="form-group">
+          <label for="description">题目描述</label>
+          <textarea class="form-control" rows="3" id="description" placeholder="description" name="description"></textarea>
+      </div>
+      <div class="form-group">
+          <label for="input">输入描述</label>
+          <textarea class="form-control" rows="3" id="input" placeholder="input" name="input"></textarea>
+      </div>
+      <div class="form-group">
+          <label for="output">输出描述</label>
+          <textarea class="form-control" rows="3" id="output" placeholder="output" name="output"></textarea>
+      </div>
+      <div class="form-group">
+          <label for="sample_input">输入样例</label>
+          <textarea class="form-control" rows="3" id="sample_input" placeholder="sample_input" name="sample_input"></textarea>
+      </div>
+      <div class="form-group">
+          <label for="sample_output">输出样例</label>
+          <textarea class="form-control" rows="3" id="sample_output" placeholder="sample_output" name="sample_output"></textarea>
+      </div>
+      <div class="form-group">
+          <label for="hint">提示</label>
+          <textarea class="form-control" rows="3" id="hint" placeholder="hint" name="hint"></textarea>
+      </div>
+      <div class="form-group">
+          <label for="source">来源</label>
+          <textarea class="form-control" rows="3" id="source" placeholder="source" name="source"></textarea>
+      </div>
+      <div class="form-group">
+          <label>题目是否在题目列表中可见</label><br>
+          <input type="radio" name="visible" value="1" id="visible1"> <label for="visible1">可见</label>&nbsp;&nbsp;&nbsp;
+          <input type="radio" name="visible" value="0" id="visible0" checked><label for="visible0">不可见</label>
+      </div>
+      <div class="form-group">
+            <label for="input_file">输入文件</label>
+            <input type="file" id="input_file" name="input_file">
+      </div>
+      <div class="form-group">
+            <label for="input_file">输出文件</label>
+            <input type="file" id="output_file" name="output_file">
+      </div>
+      <button type="button" class="btn btn-default" id="btn_problem_add">添加题目</button>
+</form>

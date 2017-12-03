@@ -4,7 +4,6 @@ class Action_Problem {
 
     private function filter($problem_id) {
         if (!isset($problem_id)
-            || $problem_id < 1000
             || !preg_match('/^\d+$/', $problem_id)) {
             throw new Exception('页面不存在', 404);
         }

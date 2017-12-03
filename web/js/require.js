@@ -1,26 +1,45 @@
+var load_template = {
+    init: function() {
+        $.get('./template/top.html', function(data) {
+            $('#top').html(data);
+
+            register.init();
+            login.init();
+            verify.init();
+        });
+    }
+}
+load_template.init();
+
 var require = {
     //页面html名对应的接口
     config: {
-        'index':'../api/index.php/problem/list/1',
-        'status':'../api/index.php/problem/status/1',
-        'problemlist':'../api/index.php/problem/list/1',
-        'contestlist':'../api/index.php/contest/list/1',
+        'index':'../api/index.php/problem/list/',
+        'status':'../api/index.php/problem/status/',
+        'problemlist':'../api/index.php/problem/list/',
+        'contestlist':'../api/index.php/contest/list/',
         'ranklist':'../api/index.php',
         'other':'c'
     },
     //进入页面html名加载的时候
     init: function () {
         var html_name = require.get_html_doc_name();
+        var url_param = require.get_url_param('page');
+        var size = 10; //每页的数目
+
         switch (html_name) {
-            case 'index':
             case 'status':
             case 'problemlist':
             case 'contestlist':
             case 'ranklist':
             case 'other':
                 $('#'+html_name).addClass("active");
-                require.request(require.config[html_name], html_name);
+                if (url_param == null) {
+                    url_param = 1;
+                }
+                require.request(require.config[html_name] + url_param + '/' + size, html_name, url_param, size);
                 break;
+            case 'index':
             case '':
                 $('#index').addClass("active");
                 require.request(require.config['index'], 'index');
@@ -32,6 +51,7 @@ var require = {
         //$('#main').css('background-size', '100%');
     },
 
+
     get_html_doc_name: function() {
         var str = window.location.href;
         if (str.lastIndexOf(".") === false) {
@@ -42,33 +62,47 @@ var require = {
         return str;
     },
 
-    request: function(api_url, html_name) {
+    get_url_param: function(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
+        var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+        if (r != null) return unescape(r[2]); return null; //返回参数值
+    },
+
+    request: function(api_url, html_name, page, size) {
         $.ajax({
             url: api_url,
             type: 'GET',
             contentType: 'application/json; charset=utf-8',
             success: function(response) {
+                var data = response.data;
                 switch (html_name) {
                     case 'index':
-                        require.show_index(response.data);
+                        require.show_index(data);
+                        require.pagination(data.num, page, size, size);
                         break;
                     case 'status':
-                        require.show_status(response.data);
+                        require.show_status(data);
+                        require.pagination(data.num, page, size);
                         break;
                     case 'problemlist':
-                        require.show_problemlist(response.data);
+                        require.show_problemlist(data);
+                        require.pagination(data.num, page, size);
                         break;
                     case 'contestlist':
-                        require.show_contestlist(response.data);
+                        require.show_contestlist(data);
+                        require.pagination(data.num, page, size);
                         break;
                     case 'ranklist':
-                        require.show_ranklist(response.data);
+                        require.show_ranklist(data);
+                        require.pagination(data.num, page, size);
                         break;
                     case 'other':
-                        require.show_other(response.data);
+                        require.show_other(data);
+                        require.pagination(data.num, page, size);
                         break;
                     case '':
-                        require.show_index(response.data);
+                        require.show_index(data);
+                        require.pagination(data.num, page, size);
                         break;
                     default:
                         break;
@@ -86,6 +120,7 @@ var require = {
     },
 
     show_status: function(data) {
+
         var data = data.list;
         var str = '<table class="table table-hover">';
         str += '<tr><th>提交号</th><th>用户</th><th>题号</th><th>状态</th><th>运行时间(MS)</th><th>运行内存(KB)</th><th>代码长度</th><th>语言</th><th>提交时间</th></tr>';
@@ -144,9 +179,36 @@ var require = {
 
     show_ranklist: function(data) {
         $('#container').html('xxxx');
+    },
+
+    pagination: function(num, page=1, size=10) {
+        if (num <= size) {
+            return false;
+        }
+        //page为当前页
+        var str = '<nav aria-label="Page navigation"><ul class="pagination">';
+            if (page > 1) {
+                var tmp = parseInt(page) - 1;
+                str += '<li><a href="?page=' + tmp + '" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>';
+            }
+            for (var i = 1; i <= Math.ceil(num / size); ++i) {
+                if (i == page) {
+                    str += '<li class="active"><a href=?page="'+ i +'">'+ i +'</a></li>';
+                } else {
+                    str += '<li><a href="?page='+ i +'">' + i + '</a></li>';
+                }
+            }
+            if (page * size < num) {
+                var tmp = parseInt(page) + 1;
+                str += '<li><a href="?page='+ tmp +'" aria-label="Next"><span aria-hidden="true">&raquo;</span></a></li>'
+            }
+            str += '</ul></nav>';
+        $('#container').after(str);
     }
 
 };
+
+
 
 var verify = {
     init: function() {
@@ -170,7 +232,7 @@ var verify = {
         $('#account').html('<button class="btn btn-primary" type="button">'+data.username+'&nbsp;<span class="badge">平民</span></button>');
     }
 }
-verify.init();
+
 
 var register = {
     request: function() {
@@ -215,7 +277,6 @@ var login = {
             username: $('#login #username').val(),
             password: $('#login #password').val(),
         };
-        console.log(JSON.stringify(post_data));
         $.ajax({
             url: '../api/index.php/user/login',
             type: 'POST',
@@ -226,6 +287,7 @@ var login = {
                 if (response.data) {
                     alert("登录成功");
                     $("#login").modal('hide');
+                    verify.init();
                 } else {
                     alert(response.msg);
                 }
@@ -244,5 +306,3 @@ var login = {
 
 
 require.init();
-register.init();
-login.init();

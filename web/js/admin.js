@@ -1,17 +1,21 @@
 var admin = {
     config: {
-        'problem': {
-            'add': ''
-        }
+        problem_add: '../../api/index.php/admin/problem/add',
+        contest_add: '../../api/index.php/admin/contest/add'
     },
     load: function(action) {
         switch (action) {
-            case 'problem_add':
+            case 'problem-add':
                 $.get('./problem_add.html', function(data) {
                     $('#container').html(data);
                     admin.problem_add();
                 });
-            case 'contest':
+                break;
+            case 'contest-add':
+                $.get('./contest_add.html', function(data) {
+                    $('#container').html(data);
+                    admin.contest_add();
+                });
                 break;
             case 'user':
                 break;
@@ -31,7 +35,7 @@ var admin = {
     problem_add: function() {
         $('#btn_problem_add').click(function() {
             $.ajax({
-                url: '../../api/index.php/admin/problem/add',
+                url: admin.config.problem_add,
                 type: 'POST',
                 cache: false,
                 processData: false,
@@ -50,6 +54,40 @@ var admin = {
                     console.log('Error');
                 }
             });
+        });
+    },
+    contest_add: function() {
+        $('#btn_contest_add').click(function() {
+            var select = $('#contest_add input:radio:checked')
+            admin.request(admin.config.contest_add, JSON.stringify({
+                'title': $('#title').val(),
+                'description': $('#description').val(),
+                'start_time': $('#start_time').val(),
+                'end_time': $('#end_time').val(),
+                'private': select.val()
+            }));
+        });
+    },
+
+    request: function(api_url, request_data) {
+        $.ajax({
+            url: api_url,
+            type: 'POST',
+            data: request_data,
+            success: function(response) {
+                if (response.code == 0) {
+                    if (response.data) {
+                        alert('添加成功');
+                    } else {
+                        alert('添加失败');
+                    }
+                } else {
+                    alert(response.msg);
+                }
+            },
+            error: function() {
+                console.log('Error');
+            }
         });
     }
 

@@ -1,6 +1,21 @@
+var web_root = '/OJ/web/';
+var api_root = '/OJ/api/';
+var api_list = {
+    index: api_root + 'index.php/problem/list/',
+    status: api_root + 'index.php/problem/status/',
+    problemlist: api_root + 'index.php/problem/list/',
+    contestlist: api_root + 'index.php/contest/list/',
+    ranklist: api_root + 'index.php',
+    other: 'c',
+
+    login: api_root + 'index.php/user/login',
+    register: api_root + 'index.php/user/register',
+    verify: api_root + 'index.php/user/verify'
+}
+
 var load_template = {
     init: function() {
-        $.get('./template/top.html', function(data) {
+        $.get(web_root + 'template/top.html', function(data) {
             $('#top').html(data);
 
             register.init();
@@ -13,14 +28,6 @@ load_template.init();
 
 var require = {
     //页面html名对应的接口
-    config: {
-        'index':'../api/index.php/problem/list/',
-        'status':'../api/index.php/problem/status/',
-        'problemlist':'../api/index.php/problem/list/',
-        'contestlist':'../api/index.php/contest/list/',
-        'ranklist':'../api/index.php',
-        'other':'c'
-    },
     //进入页面html名加载的时候
     init: function () {
         var html_name = require.get_html_doc_name();
@@ -37,12 +44,11 @@ var require = {
                 if (url_param == null) {
                     url_param = 1;
                 }
-                require.request(require.config[html_name] + url_param + '/' + size, html_name, url_param, size);
+                require.request(api_list[html_name] + url_param + '/' + size, html_name, url_param, size);
                 break;
             case 'index':
-            case '':
                 $('#index').addClass("active");
-                require.request(require.config['index'], 'index');
+                require.request(api_list['index'], 'index');
                 break;
             default:
                 break;
@@ -128,8 +134,12 @@ var require = {
             str += '<tr>';
             str += '<td>' + value['solution_id'] + '</td>';
             str += '<td>' + value['username'] + '</td>';
-            str += '<td><a href="problem.html?id='+value['problem_id']+'">' + value['problem_id'] + '</a></td>';
-            str += '<td>' + value['result'] + '</td>';
+            str += '<td><a href="problem.html?pid='+value['problem_id']+'">' + value['problem_id'] + '</a></td>';
+            if (value['result'] == 'Accepted') {
+                str += '<td style="color:green">Accepted</td>';
+            } else {
+                str += '<td style="color:red">' + value['result'] + '</td>';
+            }
             str += '<td>' + value['runtime'] + '</td>';
             str += '<td>' + value['memory'] + '</td>';
             str += '<td>' + value['code_length'] + '</td>';
@@ -148,8 +158,8 @@ var require = {
         str += '<tr><th>编号</th><th>标题</th><th>提交数</th><th>AC数</th></tr>';
         $.each(data, function(index, value) {
             str += '<tr>'
-            str += '<td><a href="problem.html?id='+value['problem_id']+'">' + value['problem_id'] + '</a></td>';
-            str += '<td><a href="problem.html?id='+value['problem_id']+'">' + value['title'] + '</a></td>';
+            str += '<td><a href="problem.html?pid='+value['problem_id']+'">' + value['problem_id'] + '</a></td>';
+            str += '<td><a href="problem.html?pid='+value['problem_id']+'">' + value['title'] + '</a></td>';
             str += '<td>' + value['submit_num'] + '</td>';
             str += '<td>' + value['accepted_num'] + '</td>';
             str += '</tr>';
@@ -165,11 +175,11 @@ var require = {
         str += '<tr><th>比赛编号</th><th>标题</th><th>开始时间</th><th>结束时间</th><th>权限</th></tr>';
         $.each(data, function(index, value) {
             str += '<tr>'
-            str += '<td>' + value['contest_id'] + '</td>';
-            str += '<td>' + value['title'] + '</td>';
+            str += '<td><a href="contest/?cid=' + value['contest_id'] + '">' + value['contest_id'] + '</a></td>';
+            str += '<td><a href="contest/?cid=' + value['contest_id'] + '">' + value['title'] + '</a></td>';
             str += '<td>' + value['start_time'] + '</td>';
             str += '<td>' + value['end_time'] + '</td>';
-            str += '<td>' + (value['private']?'Public':'Private') + '</td>';
+            str += '<td>' + (value['private']?'<span style="color:green;">Public</span>':'<span style="color:red;">Private</span>') + '</td>';
             str += '</tr>';
 
         });
@@ -193,7 +203,7 @@ var require = {
             }
             for (var i = 1; i <= Math.ceil(num / size); ++i) {
                 if (i == page) {
-                    str += '<li class="active"><a href=?page="'+ i +'">'+ i +'</a></li>';
+                    str += '<li class="active"><a href="?page='+ i +'">'+ i +'</a></li>';
                 } else {
                     str += '<li><a href="?page='+ i +'">' + i + '</a></li>';
                 }
@@ -213,7 +223,7 @@ var require = {
 var verify = {
     init: function() {
         $.ajax({
-            url: '../api/index.php/user/verify',
+            url: api_list.verify,
             type: 'GET',
             contentType: 'application/json; charset=utf-8',
             success: function(response) {
@@ -246,7 +256,7 @@ var register = {
         };
         console.log(JSON.stringify(post_data));
         $.ajax({
-            url: '../api/index.php/user/register',
+            url: api_list.register,
             type: 'POST',
             data: JSON.stringify(post_data),
             contentType: 'application/json; charset=utf-8',
@@ -278,7 +288,7 @@ var login = {
             password: $('#login #password').val(),
         };
         $.ajax({
-            url: '../api/index.php/user/login',
+            url: api_list.login,
             type: 'POST',
             data: JSON.stringify(post_data),
             contentType: 'application/json; charset=utf-8',

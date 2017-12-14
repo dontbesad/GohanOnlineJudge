@@ -223,7 +223,8 @@ int update_db(char sql[1024]) {
         mysql_close(&mysql_conn);
         return 0;
     }
-
+    
+    mysql_query(&mysql_connm, "SET NAMES UTF-8;");
     int res = mysql_query(&mysql_conn, sql);
     if (res) {
         log_msg("Mysql", mysql_error(&mysql_conn));
@@ -444,7 +445,7 @@ void gohan_core(int runid, int solution_id, int problem_id, int language) {
         if (code == 9) {
             char error[80000];
             get_runtime_error(error, runid); //获取ce文件中的信息
-            sprintf(update_sql, "SET NAMES UTF8; UPDATE `sys_solution` SET `result` = %d, `error` = '%s' WHERE `solution_id` = %d;", code, error, solution_id);
+            sprintf(update_sql, "UPDATE `sys_solution` SET `result` = %d WHERE `solution_id` = %d;", code, solution_id);
         } else {
             sprintf(update_sql, "UPDATE `sys_solution` SET `result` = %d WHERE `solution_id` = %d;", code, solution_id);
         }

@@ -28,6 +28,7 @@ class Oj extends CI_Model {
         return $problem;
     }
 
+
     //得到所有可见题目数量
     static public function get_problem_num($visible = 1) {
         $problem = get_db()
@@ -37,8 +38,21 @@ class Oj extends CI_Model {
         return empty($problem) ? 0 : $problem['num'];
     }
 
-    //获取提交记录列表
-    static public function get_solution_list_page($offset, $limit, $valid=1) {
+    static public function get_solution_by_contest($select_data, $where_data) {
+        if (empty($select_data) || empty($where_data)) {
+            return [];
+        }
+        $where_data['valid'] = 1;
+        $solution_list_contest = get_db()
+            ->select($select_data)
+            ->order_by('solution_id', 'DESC')
+            ->get_where('sys_solution', $where_data)
+            ->result_array();
+        return $solution_list_contest;
+    }
+
+    //获取提交记录列表(不算比赛的)
+    static public function get_solution_list_page($offset, $limit, $contest_id=0, $valid=1) {
         if (!isset($offset) || !isset($limit)) {
             return [];
         }
@@ -46,20 +60,29 @@ class Oj extends CI_Model {
             ->select('solution_id,problem_id,user_id,contest_id,runtime,memory,result,submit_time,code_length,language')
             ->limit($limit, $offset)
             ->order_by('solution_id', 'DESC')
-            ->get_where('sys_solution', ['valid' => $valid])
+            ->get_where('sys_solution', ['valid' => $valid, 'contest_id' => $contest_id])
             ->result_array();
         return $solution_list;
     }
-    //获取提交总数
-    static public function get_solution_num($valid = 1) {
+    //获取提交总数(不算比赛的)
+    static public function get_solution_num($contest_id=0, $valid=1) {
         $solution = get_db()
             ->select('COUNT(1) AS num')
-            ->get_where('sys_solution', ['valid' => $valid])
+            ->get_where('sys_solution', ['valid' => $valid, 'contest_id' => $contest_id])
             ->row_array();
         return empty($solution) ? 0 : $solution['num'];
     }
 
-
+    static public function get_contest($contest_id) {
+        if (!isset($contest_id)) {
+            return [];
+        }
+        $contest = get_db()
+            ->select('*')
+            ->get_where('sys_contest', ['contest_id' => $contest_id])
+            ->row_array();
+        return $contest;
+    }
 
     //获得比赛列表
     static public function get_contest_list_page($offset, $limit) {
@@ -83,13 +106,45 @@ class Oj extends CI_Model {
     }
 
     //获取比赛中的题目
-    static public function get_problem_list_contest($contest_id) {
+    static public function get_problem_list_by_contest($contest_id) {
         $problem_list_contest = get_db()
-            ->select('*')
+            ->select('title,problem_id,order_id')
+            ->order_by('order_id', 'ASC')
             ->get_where('sys_contest_problem', ['contest_id' => $contest_id])
             ->result_array();
         return $problem_list_contest;
     }
+
+    //获取比赛中的某个题目id
+    static public function get_problem_id_by_contest($contest_id, $order_id) {
+        $problem = get_db()
+            ->select('problem_id')
+            ->get_where('sys_contest_problem', ['contest_id' => $contest_id, 'order_id' => $order_id])
+            ->row_array();
+        return empty($problem['problem_id']) ? 0 : $problem['problem_id'];
+    }
+
+    //获取比赛中的某个题目order_id
+    static public function get_order_id_by_contest($contest_id, $problem_id) {
+        $order = get_db()
+            ->select('order_id')
+            ->get_where('sys_contest_problem', ['contest_id' => $contest_id, 'problem_id' => $problem_id])
+            ->row_array();
+        return empty($order['order_id']) ? 0 : $order['order_id'];
+    }
+
+    //获取比赛中的某一题
+    static public function get_problem_by_contest($where_data) {
+        if (empty($where_data) || !is_array($where_data)) {
+            return [];
+        }
+        $problem_contest = get_db()
+            ->select('*')
+            ->get_where('sys_problem', $where_data)
+            ->row_array();
+        return $problem_contest;
+    }
+
     //获取用户信息
     static public function get_user_info($username, $password=NULL) {
         if (empty($password)) {
@@ -104,6 +159,32 @@ class Oj extends CI_Model {
                 ->row_array();
         }
         return $user;
+    }
+
+    //查看所有的后台权限
+    static public function get_rule_list() {
+        $rule_list = get_db()
+            ->select('rule_id,name')
+            ->get_where('cfg_rule')
+            ->result_array();
+        return $rule_list;
+    }
+
+    //查看用户在某个api下有没有权限限制
+    static public function check_permission($user_id, $class=strtolower(get_instance()->router->fetch_class())
+    ,$method=strtolower(get_instance()->router->fetch_method()) {
+        $rule = get_db()
+            ->select('rule_id,name')
+            ->get_where('cfg_rule', ['class' => $class, 'method' => $method])
+            ->row_array();
+        if (empty($rule)) {
+            return true;
+        }
+        $user_rule = get_db()
+            ->select('')
+            ->get_where('sys_user_rule', [`user_id` => $user_id, `rule_id` => $rule['rule_id']])
+            ->row_array();
+        return !empty($user_rule);
     }
     //根据id获取user信息
     static public function get_user_info_by_id($user_id) {
@@ -129,6 +210,12 @@ class Oj extends CI_Model {
     static public function insert_problem($data) {
         get_db()
             ->insert('sys_problem', $data);
+        return get_db()->insert_id();
+    }
+    //添加比赛
+    static public function insert_contest($data) {
+        get_db()
+            ->insert('sys_contest', $data);
         return get_db()->insert_id();
     }
 }

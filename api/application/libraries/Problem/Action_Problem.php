@@ -23,6 +23,8 @@ class Action_Problem {
             $ret['accpeted_percent'] = $ret['accepted_num'] * 1.0 / $ret['submit_num'];
             $ret['solved_percent']   = $ret['solved_num'] * 1.0 / $ret['submit_num'];
         }
+        $ret['hint']   = isset($ret['hint']) ? $ret['hint'] : '';
+        $ret['source'] = isset($ret['source']) ? $ret['source'] : '';
 
         return $ret;
     }

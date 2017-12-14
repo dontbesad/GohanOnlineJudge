@@ -1,0 +1,50 @@
+<h2>添加比赛</h2>
+<form id="contest_add" method="post">
+      <div class="form-group">
+          <label for="title">比赛标题</label>
+          <input type="text" class="form-control" id="title" placeholder="title" name="title">
+      </div>
+      <div class="form-group">
+          <label for="start_time">开始时间</label>
+          <div class="input-group date" id="start_time_group">
+
+              <input type="text" class="form-control" id="start_time" placeholder="start_time" name="start_time" />
+              <span class="input-group-addon">
+                  <span class="glyphicon glyphicon-calendar"></span>
+              </span>
+          </div>
+      </div>
+      <div class="form-group">
+          <label for="end_time">结束时间</label>
+          <div class="input-group date" id="end_time_group">
+
+              <input type="text" class="form-control" id="end_time" placeholder="end_time" name="end_time" />
+              <span class="input-group-addon">
+                  <span class="glyphicon glyphicon-calendar"></span>
+              </span>
+          </div>
+      </div>
+
+      <div class="form-group">
+          <label for="end_time">比赛描述</label>
+          <textarea rows="3" class="form-control" id="description" placeholder="description" name="description" />
+      </div>
+
+      <div class="form-group">
+          <label>比赛是否私有</label><br>
+          <input type="radio" name="private" value="1" id="private1"> <label for="private1">私有</label>&nbsp;&nbsp;&nbsp;
+          <input type="radio" name="private" value="0" id="private0" checked><label for="private0">公开</label>
+      </div>
+      <button type="button" class="btn btn-default" id="btn_contest_add">添加比赛</button>
+</form>
+
+<script type="text/javascript">
+$('#start_time_group').datetimepicker({
+    format: 'YYYY-MM-DD HH:mm:ss',
+    locale: moment.locale('zh-cn')
+});
+$('#end_time_group').datetimepicker({
+    format: 'YYYY-MM-DD HH:mm:ss',
+    locale: moment.locale('zh-cn')
+});
+</script>

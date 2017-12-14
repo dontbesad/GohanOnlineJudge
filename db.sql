@@ -65,7 +65,7 @@ CREATE TABLE `sys_contest_problem` (
     `id`         INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `contest_id` INT NOT NULL DEFAULT 0,
     `problem_id` INT NOT NULL DEFAULT 0,
-    `order_id`   INT NOT NULL DEFAULT 0, #对应比赛中的顺序id
+    `order_id`   VARCHAR(20) NOT NULL DEFAULT '', #对应比赛中的顺序id(A、1001)
     `title`      VARCHAR(200) NOT NULL DEFAULT '', #比赛中题目的标题
     `score`      INT DEFAULT 0 #默认分数0，以后有空写rating系统
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
@@ -95,6 +95,36 @@ CREATE TABLE `sys_log_login` (
     `log_time` DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 ALTER TABLE `sys_log_login` ADD INDEX i_user_id(`user_id`);
+
+CREATE TABLE `cfg_user_role` (
+    `id`      INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `user_id` INT NOT NULL DEFAULT 0,
+    `role_id` INT NOT NULL DEFAULT 0
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+ALTER TABLE `cfg_user_role` ADD INDEX i_user_id(`user_id`);
+ALTER TABLE `cfg_user_role` ADD INDEX i_role_id(`role_id`);
+
+CREATE TABLE `cfg_role` (
+    `role_id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `name`    VARCHAR(50) NOT NULL DEFAULT ''
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+
+CREATE TABLE `cfg_role_rule` (
+    `id`      INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `role_id` INT NOT NULL DEFAULT 0,
+    `rule_id` INT NOT NULL DEFAULT 0
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+ALTER TABLE `cfg_role_rule` ADD INDEX i_role_id(`role_id`);
+ALTER TABLE `cfg_role_rule` ADD INDEX i_rule_id(`rule_id`);
+
+CREATE TABLE `cfg_rule` (
+    `rule_id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `class`   VARCHAR(20) NOT NULL DEFAULT '',
+    `method`  VARCHAR(20) NOT NULL DEFAULT ''
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+ALTER TABLE `cfg_rule` ADD INDEX i_rule(`class`, `method`);
+
+-- 添加private比赛
 
 
 -- cfg_language, cfg_result

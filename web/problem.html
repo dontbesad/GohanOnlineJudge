@@ -8,7 +8,7 @@
     </head>
     <body>
         <div id="top">
-            
+
 
         </div>
 
@@ -119,7 +119,7 @@
                 //不存在时返回null
                 return null;
             }
-            var id = get_url_param('id');
+            var id = get_url_param('pid');
             $.ajax({
                 url: '../api/index.php/problem/show/' + id,
                 type: 'GET',

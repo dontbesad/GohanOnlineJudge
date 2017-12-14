@@ -28,11 +28,16 @@ class Action_Submit {
         return $data;
     }
 
+    //普通用户是否对不可见的题目进行提交
+    private function check_submit_power($user_id) {
+
+    }
+
     public function execute() {
         $login_data = parse_login();
         $ret['login'] = !empty($login_data);
 
-
+        //这里需要判断普通用户不能提交隐藏的题目
         if ($ret['login']) {
             $data = $this->filter();
 

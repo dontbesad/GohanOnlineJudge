@@ -38,8 +38,11 @@ class Action_Status {
             foreach ($ret['list'] as &$row) {
                 $user = Oj::get_user_info_by_id($row['user_id']);
                 $row['username'] = $user['username'];
-
-                $row['result'] = self::RESULT_LIST[$row['result']];
+                if ($row['result'] == 1) {
+                    $row['result'] = self::RESULT_LIST[$row['result']];
+                } else {
+                    $row['result'] = self::RESULT_LIST[$row['result']];
+                }
 
                 $row['language'] = self::LANGUAGE_LIST[$row['language']];
             }

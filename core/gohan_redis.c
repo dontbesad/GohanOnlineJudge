@@ -21,17 +21,15 @@ typedef struct {
 
     char api_url[LEN]; //更新数据的接口
 
-    char post_data[LEN]; //JSON
-
     char redis_host[LEN];
-    int redis_port;
+    int  redis_port;
     char redis_queue[LEN];
 
     char compiler[LEN];
     char judger[LEN];
     char comparer[LEN];
 
-    int max_thread;
+    int  max_thread;
 } gohan_config;
 
 gohan_config g_config;
@@ -82,6 +80,8 @@ void log_msg(char error[LEN], const char msg[1024]) {
 }
 
 void gohan_init() {
+
+    read_config_file("OJ_API_URL=", g_config.api_url);
 
     read_config_file("OJ_WORKDIR=", g_config.workdir);
 
@@ -170,18 +170,42 @@ int fetch_solution(char res[MAX_LEN]) {
         //printf("%s\n", reply->str);
         if (reply->type == REDIS_REPLY_NIL) {
             freeReplyObject(reply);
+            redisFree(redis);
             return 0; //为空
         }
 
         strcpy(res, reply->str);
         freeReplyObject(reply);
+        redisFree(redis);
     }
-    redisFree(redis);
     return 1;
 }
 
 int update_result(int result, int solution_id, int runtime, int memory, char error[MAX_LEN]) {
-    printf("%d %d %d %d %s\n", result, solution_id, memory, runtime, error);
+    //printf("%d %d %d %d %s\n", result, solution_id, memory, runtime, error);
+    char curl_cmd[MAX_LEN];
+
+    cJSON *root = cJSON_CreateObject();
+    if (root == NULL) {
+        log_msg("Error", "JSON create object error");
+        return 0;
+    }
+    cJSON_AddNumberToObject(root, "result", result);
+    cJSON_AddNumberToObject(root, "solution_id", solution_id);
+    cJSON_AddNumberToObject(root, "runtime", runtime);
+    cJSON_AddNumberToObject(root, "memory", memory);
+    cJSON_AddStringToObject(root, "error", error);
+
+    char *post_json = cJSON_Print(root);
+    cJSON_Delete(root);
+    if (post_json == NULL) {
+        log_msg("Error", "JSON string error");
+        return 0;
+    }
+
+    sprintf(curl_cmd, "curl -d '%s' %s", post_json, g_config.api_url);
+    printf("%s\n", curl_cmd);
+    system(curl_cmd);
 }
 
 /**
@@ -210,16 +234,8 @@ void pthread_func(int id) {
             char source_code[MAX_LEN];
             parse_json(solution_json, "source_code", 0, source_code);
 
-            if (!update_result(11, solution_id, 0, 0, "\0")) {
+            update_result(11, solution_id, 0, 0, ""); //compiling...
 
-                log_msg("Update", "update result=11(Compiling) error");
-
-                update_result(0, solution_id, 0, 0, "\0");
-
-                pthread_mutex_unlock(&mutex);
-
-                continue;
-            }
             pthread_mutex_unlock(&mutex);
 
             gohan_core(id, solution_id, problem_id, language, time_limit, memory_limit, source_code);
@@ -330,14 +346,14 @@ void gohan_core(int runid, int solution_id, int problem_id, int language, int ti
             get_runtime_error(error, runid); //获取ce文件中的信息
             update_result(code, solution_id, 0, 0, error);
         } else {
-            update_result(code, solution_id, 0, 0, "\0");
+            update_result(code, solution_id, 0, 0, "");
         }
         system(rm_cmd); //删除线程运行目录下的所有文件
         return ;
     }
 
     //运行阶段
-    update_result(12, solution_id, 0, 0, "\0");
+    update_result(12, solution_id, 0, 0, "");
 
     get_judge_result(judger_cmd, str);
     printf("judger result str: %s\n", str);
@@ -349,7 +365,7 @@ void gohan_core(int runid, int solution_id, int problem_id, int language, int ti
     if (code != 1) {
         //update sql ...
         code = get_transform_result(2, code);
-        update_result(code, solution_id, runtime, memory, "\0");
+        update_result(code, solution_id, runtime, memory, "");
         system(rm_cmd);
         return ;
     }
@@ -359,7 +375,7 @@ void gohan_core(int runid, int solution_id, int problem_id, int language, int ti
     get_judge_result(comparer_cmd, str);
     code = parse_json(str, "code", 1, "\0");
     code = get_transform_result(3, code);
-    update_result(code, solution_id, runtime, memory, "\0");
+    update_result(code, solution_id, runtime, memory, "");
     system(rm_cmd);
 
 }

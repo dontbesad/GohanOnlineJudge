@@ -5,3 +5,4 @@ cd hiredis
 sudo make
 sudo make install
 sudo cp libhiredis.so /usr/local/lib/
+sudo /sbin/ldconfig

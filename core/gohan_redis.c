@@ -196,14 +196,14 @@ int update_result(int result, int solution_id, int runtime, int memory, char err
     cJSON_AddNumberToObject(root, "memory", memory);
     cJSON_AddStringToObject(root, "error", error);
 
-    char *post_json = cJSON_Print(root);
+    char *post_json = cJSON_PrintUnformatted(root);
     cJSON_Delete(root);
     if (post_json == NULL) {
         log_msg("Error", "JSON string error");
         return 0;
     }
-
-    sprintf(curl_cmd, "curl -d '%s' %s", post_json, g_config.api_url);
+    printf("json: %s\n", post_json);
+    sprintf(curl_cmd, "curl -H 'Content-Type: application/json' -d '%s' %s", post_json, g_config.api_url);
     printf("%s\n", curl_cmd);
     system(curl_cmd);
 }

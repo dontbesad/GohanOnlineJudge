@@ -31,6 +31,9 @@ int gohan_compare() {
     }
     char s1, s2;
     while ((s1 = fgetc(fp_ans)) != EOF) {
+        if (s1 == '\r') {
+            continue;
+        }
         if ((s2 = fgetc(fp_user)) != EOF) {
             if (s1 != s2) {
                 return WA;

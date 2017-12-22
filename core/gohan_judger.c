@@ -45,7 +45,7 @@ typedef struct {
     int  res;
 } gohan_result;
 
-int gohan_syscall_whitelist[] = {0, 1, 2, 3, 4, 5, 9, 10, 11, 12, 21, 59, 89, 158, 231};
+int gohan_syscall_whitelist[] = {0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 21, 59, 63, 89, 158, 231, 240, 252};
 int gohan_valid_syscall[SYSCALL_MAX];
 
 gohan_config g_config;

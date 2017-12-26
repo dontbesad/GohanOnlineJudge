@@ -24,11 +24,15 @@ class Action_Info {
         $ret['description'] = $contest['description'];
         $ret['title']       = $contest['title'];
 
-        if ($ret['private']) {
-            //...
-        } else {
+        $ret['contest_register'] = false; //false:未注册比赛,true:比赛已注册
 
+        if ($ret['login']) {
+            $contest_user = Oj::get_contest_user($login_info['user_id'], $contest['contest_id']);
+            if (!empty($contest_user)) {
+                $ret['contest_register'] = true;
+            }
         }
+
         return $ret;
     }
 

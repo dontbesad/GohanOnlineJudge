@@ -4,7 +4,7 @@ BEGIN;
 set names utf8;
 create database oj;
 use oj;
-
+set names utf8;
 
 CREATE TABLE `sys_solution` (
     `solution_id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -27,7 +27,6 @@ ALTER TABLE `sys_solution` ADD INDEX i_contest_id(`contest_id`);
 ALTER TABLE `sys_solution` ADD INDEX i_problem_id(`problem_id`);
 ALTER TABLE `sys_solution` ADD INDEX i_result(`result`);
 ALTER TABLE `sys_solution` ADD INDEX i_language(`language`);
-ALTER TABLE `sys_solution` AUTO_INCREMENT=1000;
 
 
 CREATE TABLE `sys_problem` (
@@ -48,6 +47,7 @@ CREATE TABLE `sys_problem` (
     `spj`           INT(2) DEFAULT 0,
     `visible`       INT(2) DEFAULT 0 #默认题目列表中不可见
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+ALTER TABLE `sys_problem` AUTO_INCREMENT=1000;
 
 
 CREATE TABLE `sys_contest` (
@@ -57,17 +57,21 @@ CREATE TABLE `sys_contest` (
     `start_time`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `end_time`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `private`     INT(2) DEFAULT 0, #默认公开
+    `password`    VARCHAR(100) NOT NULL DEFAULT '', #私有比赛的密码
     `rated`       INT(2) DEFAULT 0 #不算分数的比赛
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE `sys_contest_problem` (
-    `id`         INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `contest_id` INT NOT NULL DEFAULT 0,
-    `problem_id` INT NOT NULL DEFAULT 0,
-    `order_id`   VARCHAR(20) NOT NULL DEFAULT '', #对应比赛中的顺序id(A、1001)
-    `title`      VARCHAR(200) NOT NULL DEFAULT '', #比赛中题目的标题
-    `score`      INT DEFAULT 0 #默认分数0，以后有空写rating系统
+    `id`            INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `contest_id`    INT NOT NULL DEFAULT 0,
+    `problem_id`    INT NOT NULL DEFAULT 0,
+    `order_id`      VARCHAR(20) NOT NULL DEFAULT '', #对应比赛中的顺序id(A、1001)
+    `title`         VARCHAR(200) NOT NULL DEFAULT '', #比赛中题目的标题
+    `accepted_num`  INT DEFAULT 0,
+    `solved_num`    INT DEFAULT 0, #解决数小于等于ac数
+    `submit_num`    INT DEFAULT 0,
+    `score`         INT DEFAULT 0 #默认分数0，以后有空写rating系统
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 ALTER TABLE `sys_contest_problem` ADD INDEX i_contest(`contest_id`, `problem_id`);
 
@@ -75,7 +79,7 @@ ALTER TABLE `sys_contest_problem` ADD INDEX i_contest(`contest_id`, `problem_id`
 CREATE TABLE `sys_user` (
     `user_id`     INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `username`    VARCHAR(20) NOT NULL UNIQUE, #用于用户登录名，可以修改，但是不能重名
-    `password`    VARCHAR(30) NOT NULL DEFAULT '',
+    `password`    VARCHAR(250) NOT NULL DEFAULT '',
     `reg_time`    DATETIME DEFAULT CURRENT_TIMESTAMP,
     `school`      VARCHAR(100) DEFAULT '',
     `email`       VARCHAR(50) DEFAULT '',
@@ -85,16 +89,22 @@ CREATE TABLE `sys_user` (
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 ALTER TABLE `sys_user` ADD INDEX i_school(`school`);
 
-COMMIT;
-SET AUTOCOMMIT=1;
 
-CREATE TABLE `sys_log_login` (
-    `id`       INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `user_id`  INT NOT NULL DEFAULT 0,
-    `ip`       VARCHAR(20) DEFAULT '',
-    `log_time` DATETIME DEFAULT CURRENT_TIMESTAMP
+#私有比赛注册用户
+CREATE TABLE `sys_contest_user` (
+    `id`         INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `contest_id` INT NOT NULL DEFAULT 0,
+    `user_id`    INT NOT NULL DEFAULT 0
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
-ALTER TABLE `sys_log_login` ADD INDEX i_user_id(`user_id`);
+ALTER TABLE `sys_contest_user` ADD INDEX i_contest_user(`contest_id`, `user_id`);
+
+-- CREATE TABLE `sys_log_login` (
+--     `id`       INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+--     `user_id`  INT NOT NULL DEFAULT 0,
+--     `ip`       VARCHAR(20) DEFAULT '',
+--     `log_time` DATETIME DEFAULT CURRENT_TIMESTAMP
+-- ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+-- ALTER TABLE `sys_log_login` ADD INDEX i_user_id(`user_id`);
 
 CREATE TABLE `cfg_user_role` (
     `id`      INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -124,7 +134,8 @@ CREATE TABLE `cfg_rule` (
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 ALTER TABLE `cfg_rule` ADD INDEX i_rule(`class`, `method`);
 
--- 添加private比赛
+COMMIT;
+SET AUTOCOMMIT=1;
 
 
 -- cfg_language, cfg_result

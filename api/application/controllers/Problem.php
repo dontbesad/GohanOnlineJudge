@@ -55,4 +55,16 @@ class Problem extends MY_Controller {
 		$this->json_response($ret);
 	}
 
+	public function source_code($solution_id=1) {
+		$this->load->library('Problem/Action_Source_Code');
+		try {
+			$ret['data'] = $this->action_source_code->execute($solution_id);
+			$ret['code'] = 0;
+		} catch (Exception $e) {
+			$ret['msg']  = $e->getMessage();
+			$ret['code'] = $e->getCode();
+		}
+		$this->json_response($ret);
+	}
+
 }

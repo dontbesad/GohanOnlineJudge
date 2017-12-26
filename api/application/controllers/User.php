@@ -44,8 +44,17 @@ class User extends MY_Controller {
 		$this->json_response($ret);
     }
 
+	//退出登录
     public function quit() {
-        //退出登录
+        $this->load->library('User/Action_Quit');
+		try {
+			$ret['data'] = $this->action_quit->execute();
+			$ret['code'] = 0;
+		} catch (Exception $e) {
+			$ret['msg']  = $e->getMessage();
+			$ret['code'] = $e->getCode();
+		}
+		$this->json_response($ret);
     }
 
 }

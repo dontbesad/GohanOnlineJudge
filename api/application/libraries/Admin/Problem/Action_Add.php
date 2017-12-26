@@ -1,7 +1,6 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Action_Add {
-    const UPLOAD_DIR = '/home/yy/web/OJ/Judge/data/';
     const DATA_LIST = [
         'title' => [
             'must' => 1,
@@ -39,6 +38,13 @@ class Action_Add {
     ];
 
     private function filter() {
+        $login_data = parse_login();
+        if (empty($login_data)) {
+            throw new Exception('请先登录', 403);
+        } else if (!check_permission($login_data['user_id'])) {
+            throw new Exception('您没有权限访问', 403);
+        }
+
         $data = [];
         foreach (self::DATA_LIST as $key => $value) {
             if ($value['must'] && empty($_POST[$key])) {
@@ -57,11 +63,12 @@ class Action_Add {
     }
     //第几页，每页多少记录
     public function execute() {
+
         $data = $this->filter();
 
         if ($problem_id = Oj::insert_problem($data)) {
 
-            $dir = self::UPLOAD_DIR.$problem_id;
+            $dir = OJ_UPLOAD_DATA_DIR.$problem_id;
             $this->save_file($dir);
         } else {
             throw new Exception('后台数据保存错误', 500);

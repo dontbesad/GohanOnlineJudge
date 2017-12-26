@@ -5,10 +5,10 @@ class Action_Submit {
     CONST DATA_LIST       = ['source_code', 'order_id', 'language', 'contest_id'];
     CONST LANGUAGE_LIST   = [1, 2]; //c c++
 
-    private function filter() {
+    private function filter($user_id) {
         $post_data = json_decode(file_get_contents('php://input'), true);
         if (!is_array($post_data)) {
-            throw new Exception('数据传输有误', 100);
+            throw new Exception('数据传输格式有误', 100);
         }
 
         foreach (self::DATA_LIST as $value) {
@@ -17,23 +17,7 @@ class Action_Submit {
             }
         }
 
-        $problem_id = Oj::get_problem_id_by_contest($post_data['contest_id'], $post_data['order_id']);
-
-        if (strlen($post_data['source_code']) > self::CODE_MAX_LENGTH) {
-            throw new Exception('代码不得超过'.self::CODE_MAX_LENGTH.'字节', 100);
-        } else if (empty($problem_id)) {
-            throw new Exception('题目不存在', 100);
-        } else if (!in_array($post_data['language'], self::LANGUAGE_LIST)) {
-            throw new Exception('语言不存在', 100);
-        }
-        $post_data['problem_id'] = $problem_id;
-
-        return $post_data;
-    }
-
-    //检查提交权限(是否注册比赛(private), 是否对未开始or已结束的比赛题目进行提交, 比赛or题目是否已不存在)
-    private function check_submit_power($user_id, $contest_id) {
-        $contest = Oj::get_contest($contest_id);
+        $contest = Oj::get_contest($post_data['contest_id']);
         if (empty($contest)) {
             throw new Exception('比赛不存在', 404);
         } else if (strtotime($contest['start_time']) > time()) {
@@ -41,6 +25,28 @@ class Action_Submit {
         } else if (strtotime($contest['end_time']) < time()) {
             throw new Exception('比赛已结束', 400);
         }
+
+        $contest_user = Oj::get_contest_user($user_id, $post_data['contest_id']);
+        if (empty($contest_user)) {
+            throw new Exception('你未注册比赛，不能提交题目', 403);
+        }
+
+        $problem_id = Oj::get_problem_id_by_contest($post_data['contest_id'], $post_data['order_id']);
+        $problem = Oj::get_problem($problem_id, 0);
+
+        if (strlen($post_data['source_code']) > self::CODE_MAX_LENGTH) {
+            throw new Exception('代码不得超过'.self::CODE_MAX_LENGTH.'字节', 100);
+        } else if (empty($problem_id) && empty($problem)) {
+            throw new Exception('题目不存在', 100);
+        } else if (!in_array($post_data['language'], self::LANGUAGE_LIST)) {
+            throw new Exception('语言不存在', 100);
+        }
+
+        $post_data['problem_id'] = $problem_id;
+        $post_data['time_limit'] = $problem['time_limit'];
+        $post_data['memory_limit'] = $problem['memory_limit'];
+
+        return $post_data;
     }
 
     public function execute() {
@@ -49,8 +55,7 @@ class Action_Submit {
 
         if ($ret['login']) {
 
-            $data = $this->filter();
-            $this->check_submit_power($login_data['user_id'], $data['contest_id']);
+            $data = $this->filter($login_data['user_id']);
 
             $solution_data = [
                 'problem_id'   => $data['problem_id'],
@@ -61,9 +66,21 @@ class Action_Submit {
                 'contest_id'   => $data['contest_id']
             ];
 
-            if (!Oj::insert_solution($solution_data)) {
+            $solution_id = Oj::insert_solution($solution_data);
+            if (!$solution_id) {
                 throw new Exception('数据传送失败', 500);
             }
+
+            $data = [
+                'solution_id' => intval($solution_id),
+                'problem_id'  => intval($data['problem_id']),
+                'language'    => intval($data['language']),
+                'source_code' => $data['source_code'],
+                'time_limit'  => intval($data['time_limit']),
+                'memory_limit'=> intval($data['memory_limit'])
+            ];
+            get_redis()->lpush('solution', json_encode($data));
+
             $ret['solution'] = true;
         }
 

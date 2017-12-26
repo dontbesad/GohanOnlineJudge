@@ -35,6 +35,19 @@
           <input type="radio" name="private" value="1" id="private1"> <label for="private1">私有</label>&nbsp;&nbsp;&nbsp;
           <input type="radio" name="private" value="0" id="private0" checked><label for="private0">公开</label>
       </div>
+
+      <div class="form-group">
+          <label for="password">私有比赛的密码</label>
+          <input type="text" class="form-control" id="password" placeholder="password" name="password" />
+      </div>
+
+      <hr>
+
+      <div class="form-group">
+          <label for="problem_list">比赛题目</label>
+          <input type="text" class="form-control" id="problem_list" placeholder="多个题目用逗号隔开: 1000,1001 ..." name="problem_list">
+      </div>
+
       <button type="button" class="btn btn-default" id="btn_contest_add">添加比赛</button>
 </form>
 

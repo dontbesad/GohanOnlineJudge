@@ -5,7 +5,7 @@ class Contest extends MY_Controller {
 	protected static $api_list = [
 		'list', 'test',
 	];
-
+	//比赛列表
 	public function list($page=1, $size=10) {
 		$this->load->library('Contest/Action_List');
 		try {
@@ -17,7 +17,7 @@ class Contest extends MY_Controller {
 		}
 		$this->json_response($ret);
 	}
-
+	//比赛基本信息
 	public function info($contest_id=0) {
 		$this->load->library('Contest/Action_Info');
 		try {
@@ -82,6 +82,18 @@ class Contest extends MY_Controller {
 		$this->load->library('Contest/Action_Submit');
 		try {
 			$ret['data'] = $this->action_submit->execute();
+			$ret['code'] = 0;
+		} catch (Exception $e) {
+			$ret['msg']  = $e->getMessage();
+			$ret['code'] = $e->getCode();
+		}
+		$this->json_response($ret);
+	}
+	//post
+	public function register() {
+		$this->load->library('Contest/Action_Register');
+		try {
+			$ret['data'] = $this->action_register->execute();
 			$ret['code'] = 0;
 		} catch (Exception $e) {
 			$ret['msg']  = $e->getMessage();

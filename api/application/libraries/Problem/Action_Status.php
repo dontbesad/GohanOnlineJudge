@@ -33,7 +33,7 @@ class Action_Status {
 
     public function execute($page, $size) {
         $this->filter($page, $size);
-        $ret['list'] = Oj::get_solution_list_page(($page - 1)*$size, $size);
+        $ret['list'] = Oj::get_solution_list_page(($page - 1)*$size, $size); //默认不是在比赛提交中的记录
         if (!empty($ret['list'])) {
             foreach ($ret['list'] as &$row) {
                 $user = Oj::get_user_info_by_id($row['user_id']);

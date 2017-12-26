@@ -1,7 +1,11 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
-//Admin - contest_add
-class Action_Add {
+//Admin - contest_update
+//比赛修改
+class Action_Update {
     const DATA_LIST = [
+        'contest_id' => [
+            'must' => 1,
+        ],
         'title' => [
             'must' => 1,
         ],
@@ -46,6 +50,9 @@ class Action_Add {
                 throw new Exception($key.'不能为空', 200);
             }
         }
+        if (empty(Oj::get_contest($post_data['contest_id']))) {
+            throw new Exception('对应的比赛不存在', 404);
+        }
 
         if (strtotime($post_data['end_time']) <= strtotime($post_data['start_time'])) {
             throw new Exception('比赛的结束时间不能小于开始时间', 400);
@@ -54,6 +61,7 @@ class Action_Add {
         if (!empty($post_data['problem_list']) && !preg_match('/^[,\d]+$/', $post_data['problem_list'])) {
             throw new Exception('添加至比赛的题目格式错误', 400);
         }
+
 
         $problem_arr = explode(',', $post_data['problem_list']);
         $problem_list = [];
@@ -71,26 +79,40 @@ class Action_Add {
             ];
         }
 
+        $orig_problem_list = Oj::get_problem_list_by_contest($post_data['contest_id']); //原先的题目
+        if (!empty($orig_problem_list)) {
+            //原先的题目比现在的题目多
+            if (empty($problem_list)) {
+                throw new Exception('比赛题目为空(比赛题目跟原先相比不能减少,只能调换顺序或者增加)', 400);
+            } else {
+                $problem_id_arr = array_column($problem_list, 'problem_id');
+                foreach ($orig_problem_list as $problem) {
+                    if (!in_array($problem['problem_id'], $problem_id_arr)) {
+                        throw new Exception($problem['problem_id'].'号题目缺少(比赛题目跟原先相比不能减少,只能调换顺序或者增加)', 400);
+                    }
+                }
+            }
+        }
+
         if (count($problem_list) > 16) {
             throw new Exception('比赛题目数量不得超过16个', 100);
         }
+
         $post_data['problem_list'] = $problem_list;
 
         return $post_data;
     }
 
     public function execute() {
-        
+
         $data = $this->filter();
 
+        $contest_id   = $data['contest_id'];
+        unset($data['contest_id']);
         $problem_list = $data['problem_list'];
         unset($data['problem_list']);
 
-        $contest_id = Oj::insert_contest($data);
-
-        if (!$contest_id) {
-            throw new Exception('比赛添加失败', 500);
-        }
+        Oj::update_contest($contest_id, $data);
 
         if (!empty($problem_list)) {
             $index = 0;
@@ -98,8 +120,10 @@ class Action_Add {
                 $problem['order_id']   = self::ORDER_LIST[$index++];
                 $problem['contest_id'] = $contest_id;
             }
+            Oj::delete_contest_problem($contest_id);
             Oj::insert_contest_problem($problem_list);
         }
+
 
         return true;
     }

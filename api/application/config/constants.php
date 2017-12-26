@@ -83,3 +83,11 @@ defined('EXIT_USER_INPUT')     OR define('EXIT_USER_INPUT', 7); // invalid user 
 defined('EXIT_DATABASE')       OR define('EXIT_DATABASE', 8); // database error
 defined('EXIT__AUTO_MIN')      OR define('EXIT__AUTO_MIN', 9); // lowest automatically-assigned error code
 defined('EXIT__AUTO_MAX')      OR define('EXIT__AUTO_MAX', 125); // highest automatically-assigned error code
+
+/**
+ * oj常量
+ */
+defined('OJ_UPLOAD_DATA_DIR')       OR define('OJ_UPLOAD_DATA_DIR', '/home/yy/web/OJ/Judge/data/'); //oj题目数据目录
+defined('OJ_UPLOAD_IMAGE_DIR')      OR define('OJ_UPLOAD_IMAGE_DIR', '/home/yy/web/OJ/upload/');    //oj题目图片目录
+defined('OJ_IMAGE_URL')             OR define('OJ_IMAGE_URL', '/OJ/upload/'); //oj图片前缀链接
+defined('OJ_IMAGE_MAX_SIZE')        OR define('OJ_IMAGE_MAX_SIZE', 368640); //oj单个图片最大上传大小360k

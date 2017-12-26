@@ -20,11 +20,11 @@ class Action_Register {
         ],
         'email' => [
             'must' => 0,
-            'preg' => '/^\w+$/'
+            'preg' => '/^\w+@\w+\.\w+$/'
         ],
         'description' => [
             'must' => 0,
-            'preg' => '/^\w+$/'
+            'preg' => '/^[\w\s]+$/'
         ],
     ];
 

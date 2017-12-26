@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title></title>
+        <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <link href="https://cdn.bootcss.com/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
+
+        <style media="screen">
+        </style>
+    </head>
+    <body style="background:url(../image/gohan.jpg) no-repeat fixed center; background-size:100%;">
+        <div id="admin">
+    		<div class="col-md-12 column">
+    			<nav class="navbar navbar-default nofollow" role="navigation">
+    				<div class="navbar-header">
+    					 <a rel="nofollow" class="navbar-brand" href="javascript:0;">OnlineJudge后台 - 登录页</a>
+    				</div>
+    			</nav>
+    		</div>
+
+            <div id="admin_login" style="width:360px; position:absolute; padding:10px 30px; background:rgba(160,160,250,.6); border-radius:.6em; border:2px solid #bbb;">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" class="form-control" id="username" placeholder="用户名">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" class="form-control" id="password" placeholder="密码">
+                </div>
+
+                <button id="btn_admin_login" type="submit" class="btn btn-info" style="width:100%;">登录</button>
+            </div>
+        </div>
+
+    </body>
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://cdn.bootcss.com/moment.js/2.18.1/moment-with-locales.min.js"></script>
+    <script type="text/javascript" src="https://cdn.bootcss.com/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+    <script type="text/javascript">
+    $(document).ready(function() {
+        var top = $(document).height() / 2 - $('#admin_login').height() / 2;
+        var left  = $(document).width() / 2 - $('#admin_login').width() / 2;
+        $('#admin_login').css('top', top);
+        $('#admin_login').css('left', left);
+
+        document.onkeydown = function(e) {
+            var ev = document.all ? window.event : e;
+            if(ev.keyCode==13) {
+                request();
+            }
+        }
+        $('#btn_admin_login').click(function() {
+            request();
+        });
+        var request = function() {
+            $.ajax({
+                url: '../../api/index.php/admin/user/login',
+                type: 'POST',
+                data: JSON.stringify({
+                    username: $('#admin_login #username').val(),
+                    password: $('#admin_login #password').val()
+                }),
+                success: function(response) {
+                    if (!response.code) {
+                        alert('登录成功');
+                        location.href = './';
+                    } else {
+                        alert(response.msg);
+                    }
+                },
+                error: function() {
+                    console.log('Error');
+                }
+            });
+        }
+    });
+    </script>
+</html>

@@ -186,6 +186,7 @@
                                 console.log(response.data);
                                 alert('提交成功');
                                 $('#sourceModal').modal('hide');
+                                location.href = './status.html';
                             } else if (!response.code) {
                                 alert('请先登录');
                                 $('#sourceModal').modal('hide');

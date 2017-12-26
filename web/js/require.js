@@ -8,9 +8,12 @@ var api_list = {
     ranklist: api_root + 'index.php',
     other: 'c',
 
+    source_code: api_root + 'index.php/problem/source_code/',
+
     login: api_root + 'index.php/user/login',
     register: api_root + 'index.php/user/register',
-    verify: api_root + 'index.php/user/verify'
+    verify: api_root + 'index.php/user/verify',
+    quit: api_root + 'index.php/user/quit',
 }
 
 var load_template = {
@@ -21,10 +24,12 @@ var load_template = {
             register.init();
             login.init();
             verify.init();
+
         });
     }
 }
-load_template.init();
+
+
 
 var require = {
     //页面html名对应的接口
@@ -54,7 +59,9 @@ var require = {
                 break;
         }
         //$('#main').css('background-image', 'url(/gohan.jpg)');
-        //$('#main').css('background-size', '100%');
+        $(document.body).css('background-color', '#CDC9A5');
+        //$(document.body).css('background', 'url(./image/gohan2.jpg) no-repeat fixed center');
+        //$(document.body).css('background-size', '100%');
     },
 
 
@@ -113,7 +120,6 @@ var require = {
                     default:
                         break;
                 }
-                console.log(response);
             },
             error: function() {
                 console.log("error");
@@ -143,13 +149,46 @@ var require = {
             str += '<td>' + value['runtime'] + '</td>';
             str += '<td>' + value['memory'] + '</td>';
             str += '<td>' + value['code_length'] + '</td>';
-            str += '<td>' + value['language'] + '</td>';
+            str += '<td><a href="' + value['solution_id'] + '" data-toggle="modal" data-target="#show_code">'+value["language"]+'</a></td>';
             str += '<td>' + value['submit_time'] + '</td>';
             str += '</tr>';
 
         });
         str += '</table>';
         $('#container').html(str);
+        require.show_source_code();
+    },
+
+    show_source_code: function() {
+
+        var escapeHTML = function(a){
+             a = "" + a;
+             return a.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;").replace(/ /g, "&nbsp;").replace(/\n/g, "<br>");
+        };
+
+        $('a[data-target="#show_code"]').click(function() {
+            console.log($(this).attr('href'));
+            $.ajax({
+                url: api_list.source_code + $(this).attr('href'),
+                type: 'GET',
+                contentType: 'application/json; charset=utf-8',
+                success: function(response) {
+                    if (!response.code) {
+                        var str = '<code>';
+                        str += escapeHTML(response.data.source_code);
+                        str += '</code>';
+                        $('#show_code .modal-body').html(str);
+                        $('#show_code').modal('show');
+                    } else {
+                        alert(response.msg);
+                    }
+                },
+                error: function() {
+                    console.log('Error');
+                }
+            });
+            return false;
+        });
     },
 
     show_problemlist: function(data) {
@@ -179,7 +218,11 @@ var require = {
             str += '<td><a href="contest/?cid=' + value['contest_id'] + '">' + value['title'] + '</a></td>';
             str += '<td>' + value['start_time'] + '</td>';
             str += '<td>' + value['end_time'] + '</td>';
-            str += '<td>' + (value['private']?'<span style="color:green;">Public</span>':'<span style="color:red;">Private</span>') + '</td>';
+            if (value['private'] == 1) {
+                str += '<td><span style="color:red;">Private</span></td>';
+            } else {
+                str += '<td><span style="color:green;">Public</span></td>';
+            }
             str += '</tr>';
 
         });
@@ -239,7 +282,37 @@ var verify = {
         })
     },
     show_account: function(data) {
-        $('#account').html('<button class="btn btn-primary" type="button">'+data.username+'&nbsp;<span class="badge">平民</span></button>');
+        var str = '<div class="btn-group">';
+        str += '<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
+        str += data.username + '&nbsp;&nbsp;<span class="caret"></span>';
+        str += '</button><ul class="dropdown-menu dropdown-menu-right">';
+
+        str += '<li><a href="javascript:0;">个人信息</a></li>';
+
+        if (data.admin) {
+            str += '<li><a href="/OJ/web/admin">后台页面</a></li>';
+        }
+
+        str += '<li role="separator" class="divider"></li>';
+
+        str += '<li><a href="javascript:0;" id="quit"><span class="glyphicon glyphicon-off" aria-hidden="true"></span>退出登录</a></li>';
+        str += '</ul></div>';
+        $('#account').html(str);
+
+        $('#quit').click(function () {
+            $.ajax({
+                url: api_list.quit,
+                type: 'GET',
+                success: function() {
+                    alert('成功退出');
+                    location.reload();
+                },
+                error: function() {
+                    console.log('Error');
+                }
+            });
+            return false;
+        });
     }
 }
 
@@ -315,4 +388,5 @@ var login = {
 }
 
 
+load_template.init();
 require.init();

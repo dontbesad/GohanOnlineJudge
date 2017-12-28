@@ -8,8 +8,7 @@
     </head>
     <body>
         <div id="top">
-
-
+            <img src="/OJ/web/image/top.png">
         </div>
 
 
@@ -21,6 +20,10 @@
                 <li role="presentation" id="contestlist"><a href="contestlist.html">比赛列表</a></li>
                 <li role="presentation" id="ranklist"><a href="ranklist.html">排名</a></li>
                 <li role="presentation" id="other"><a href="other.html">更多</a></li>
+
+                <li role="presentation" style="float:right"><a href="javascript:0;" data-toggle="modal" data-target="#register">注册</a></li>
+                <li role="presentation" style="float:right"><a href="javascript:0;" data-toggle="modal" data-target="#login">登录</a></li>
+                <li role="presentation" id="account" class="dropdown"></li>
             </ul>
         </div>
 
@@ -121,11 +124,15 @@
             }
             var id = get_url_param('pid');
             $.ajax({
-                url: '../api/index.php/problem/show/' + id,
+                url: '/OJ/api/index.php/problem/info/' + id,
                 type: 'GET',
                 contentType: 'application/json; charset=utf-8',
                 success: function(response) {
-                    show_problem(response.data);
+                    if (!response.code) {
+                        show_problem(response.data);
+                    } else {
+                        alert(response.msg);
+                    }
                 },
                 error: function() {
                     console.log("Error");
@@ -141,7 +148,7 @@
                     + '<span class="label label-default">内存限制:'+data.memory_limit+'KB</span>';
                 $('#container .problem-detail').html(detail);
 
-                var description = data.description.replace('\n', '<br>').replace(' ', '&nbsp;');
+                var description = data.description.replace('\n', '<br>');
                 $('#container .problem-description').html(description);
 
                 var input = data.input.replace('\n', '<br>').replace(' ', '&nbsp;');
@@ -204,6 +211,5 @@
             submit_source.init();
 
         });
-    </script>
     </script>
 </html>

@@ -6,6 +6,10 @@ class Action_Register {
             'must' => 1,
             'preg' => '/^\w+$/'
         ],
+        'nickname' => [
+            'must' => 1,
+            'preg' => '/^[(\x{4e00}-\x{9fa5})\w]+$/u'
+        ],
         'password' => [
             'must' => 1,
             'preg' => '/^\w+$/'

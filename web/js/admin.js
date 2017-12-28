@@ -12,6 +12,8 @@ var admin = {
         upload_image: admin_api_root + 'problem/upload_image',
         problem_list: admin_api_root + 'problem/list',
         problem_delete: admin_api_root + 'problem/delete',
+        problem_update: admin_api_root + 'problem/update',
+        problem_update_show: admin_api_root + 'problem/info',
 
         contest_add: admin_api_root + 'contest/add',
         contest_list: admin_api_root + 'contest/list',
@@ -35,13 +37,12 @@ var admin = {
                     page = 1;
                 }
                 admin.show_problem_list(page, 10);
-                admin.problem_delete();
                 break;
             case 'contest-add':
                 $.get('./contest_add.html', function(data) {
                     $('#container').html(data);
+                    admin.contest_add();
                 });
-                admin.contest_add();
                 break;
             case 'contest-list':
                 var page = admin.get_url_param('page');
@@ -49,8 +50,6 @@ var admin = {
                     page = 1;
                 }
                 admin.show_contest_list(page, 10);
-                admin.contest_delete();
-                admin.contest_update_show();
                 break;
             case 'admin-list':
                 admin.user_admin_list();
@@ -60,8 +59,6 @@ var admin = {
                     $('#container').html(data);
 
                     admin.show_role_list();
-                    admin.search_user();
-                    admin.user_admin_grant();
                 });
             default:
                 console.log('404');
@@ -72,7 +69,7 @@ var admin = {
 
         admin.quit();
 
-        $('#panel-111 .list-group a').click(function() {
+        $('#panel-111 .list-group a').bind('click', function() {
             var action = $(this).attr('href').split("#")[1];
             //history.pushState({ action: action }, NULL, "#" + action);
             admin.load(action);
@@ -110,7 +107,7 @@ var admin = {
     },
 
     quit: function() {
-        $('#quit').click(function() {
+        $('#quit').bind('click', function() {
             $.ajax({
                 url: admin.config.quit,
                 type: 'GET',
@@ -125,7 +122,7 @@ var admin = {
         });
     },
     problem_add: function(editor) {
-        $(document.body).on('click', '#btn_problem_add', function(e) {
+        $('#btn_problem_add').bind('click', function() {
             var formdata = new FormData($('#problem_add')[0]);
             formdata.append('description', editor.txt.html());
             $.ajax({
@@ -140,6 +137,7 @@ var admin = {
                     console.log(response);
                     if (!response.code) {
                         alert('添加成功');
+                        location.reload();
                     } else {
                         alert(response.msg);
                     }
@@ -192,12 +190,17 @@ var admin = {
                     var data = response.data;
                     var str = '<table id="problem_list" class="table table-hover table-condensed" style="background-color:rgba(240,245,250,.6);">';
                     str += '<caption>题目列表</caption>';
-                    str += '<tr><th>题目编号</th><th>标题</th><th>来源</th><th>操作</th></tr>';
+                    str += '<tr><th>题目编号</th><th>标题</th><th>题目列表中是否可见</th><th>来源</th><th>操作</th></tr>';
 
                     $.each(data.list, function(index, value) {
 
                         str += '<tr><td>' + value["problem_id"] + '</td>';
-                        str += '<td>' + value['title'] + '&nbsp;<a href="../problem.html?pid=' + value["problem_id"] + '">(查看)</a></td>';
+                        str += '<td><a href="../problem.html?pid=' + value["problem_id"] + '">'+value["title"]+'</a></td>';
+                        if (value['visible'] == 1) {
+                            str += '<td style="color:green;">可见</td>';
+                        } else {
+                            str += '<td style="color:red;">不可见</td>';
+                        }
                         str += '<td>' + value['source'] + '</td>';
                         str += '<td><button class="btn btn-warning" data-link="'+value['problem_id']+'">修改</button>&nbsp;<button class="btn btn-danger" data-link="'+value['problem_id']+'">删除</button></td></tr>';
 
@@ -207,6 +210,8 @@ var admin = {
                     $('#container').html(str);
                     admin.pagination('#problem-list', data.num, page, size);
 
+                    admin.problem_delete();
+                    admin.problem_update_show();
                 } else {
                     alert(response.msg);
                 }
@@ -218,7 +223,10 @@ var admin = {
     },
 
     problem_delete: function() {
-        $('#container').on('click', '#problem_list .btn-danger', function(e) {
+        $('#container #problem_list .btn-danger').bind('click', function() {
+            if(!confirm("确定要进行此操作吗？")) {
+                return false;
+            }
             var problem_id = $(this).attr('data-link');
             $.ajax({
                 url: admin.config.problem_delete + '/' + problem_id,
@@ -238,8 +246,99 @@ var admin = {
         });
     },
 
+    problem_update_show: function() {
+        $('#container #problem_list .btn-warning').bind('click', function(e) {
+            //alert($(this).attr('data-link'));
+            var problem_id = $(this).attr('data-link');
+            $.get('./problem_add.html', function(data) {
+                $('#container').html(data);
+
+                var editor = admin.upload_image();
+
+                $('#container #problem_add').attr('id', 'problem_update');
+
+                var str = '<div class="form-group"><label for="problem_id">题目编号</label><input type="text" disabled class="form-control" id="problem_id" placeholder="problem_id" name="problem_id" value="'+problem_id+'"></div>';
+                $('#container #problem_update').prepend(str);
+
+                $('#container h2').html('修改题目<span class="label label-warning" style="float:right; font-size:.6em;">注意:刷新页面将不能保存</span>');
+                $('#container h2').before('<a href="javascript:0;" onclick="location.reload();"><< 回到题目列表</a>');
+                $('#container #btn_problem_add').attr('id', 'btn_problem_update');
+                $('#container #btn_problem_update').text('修改题目信息');
+
+                var tip = '<div class="alert alert-warning alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button><strong>提示:</strong> 如果上传数据文件,会覆盖上一次的文件.不上传就保留上一次的数据文件.</div>';
+                $('#container #input_file').parent().before(tip);
+
+                $.ajax({
+                    url: admin.config.problem_update_show + '/' + problem_id,
+                    type: 'GET',
+                    success: function(response) {
+                        if (!response.code) {
+                            var data = response.data;
+                            $('#title').val(data.title);
+                            $('#time_limit').val(data.time_limit);
+                            $('#memory_limit').val(data.memory_limit);
+                            editor.txt.html(data.description);
+                            $('#input').val(data.input);
+                            $('#output').val(data.output);
+                            $('#sample_input').val(data.sample_input);
+                            $('#sample_output').val(data.sample_output);
+                            $('#hint').val(data.hint);
+                            $('#source').val(data.source);
+                            if (data.visible == 1) {
+                                $('#visible1').attr('checked', 1);
+                            } else {
+                                $('#visible0').attr('checked', 1);
+                            }
+                        } else {
+                            alert(response.msg);
+                            location.reload();
+                        }
+                    },
+                    error: function() {
+                        console.log('Error');
+                    }
+                });
+
+
+                admin.problem_update(editor);
+            });
+
+        });
+
+    },
+
+    problem_update: function(editor) {
+        $('#container #btn_problem_update').bind('click', function(e) {
+            var formdata = new FormData($('#problem_update')[0]);
+            formdata.append('description', editor.txt.html());
+            formdata.append('problem_id', $('#problem_id').val());
+            console.log(formdata);
+            $.ajax({
+                url: admin.config.problem_update,
+                type: 'POST',
+                cache: false,
+                processData: false,
+                contentType: false,
+                //dataType:'application/json; charset:utf-8',
+                data: formdata,
+                success: function(response) {
+                    console.log(response);
+                    if (!response.code) {
+                        alert('修改成功');
+                        location.reload();
+                    } else {
+                        alert(response.msg);
+                    }
+                },
+                error: function() {
+                    console.log('Error');
+                }
+            });
+        });
+    },
+
     contest_add: function() {
-        $(document.body).on('click', '#btn_contest_add', function(e) {
+        $('#btn_contest_add').bind('click', function(e) {
             var select = $('#contest_add input:radio:checked')
             admin.request(admin.config.contest_add, JSON.stringify({
                 'title': $('#title').val(),
@@ -268,7 +367,7 @@ var admin = {
                     $.each(data.list, function(index, value) {
 
                         str += '<tr><td>' + value["contest_id"] + '</td>';
-                        str += '<td>' + value['title'] + '&nbsp;<a href="../contest/?cid=' + value["contest_id"] + '">(查看)</a></td>';
+                        str += '<td><a href="../contest.html?cid=' + value["contest_id"] + '">'+value["title"]+'</a></td>';
                         str += '<td>' + value["start_time"] + '</td>';
                         str += '<td>' + value["end_time"] + '</td>';
                         if (value['private'] == 1) {
@@ -284,6 +383,8 @@ var admin = {
                     $('#container').html(str);
                     admin.pagination('#contest-list', data.num, page, size);
 
+                    admin.contest_delete();
+                    admin.contest_update_show();
                 } else {
                     alert(response.msg);
                 }
@@ -295,7 +396,7 @@ var admin = {
     },
 
     contest_delete: function() {
-        $('#container').on('click', '#contest_list .btn-danger', function(e) {
+        $('#container #contest_list .btn-danger').bind('click', function(e) {
             if(!confirm("确定要进行此操作吗？")) {
                 return false;
             }
@@ -319,7 +420,7 @@ var admin = {
     },
 
     contest_update_show: function() {
-        $('#container').on('click', '#contest_list .btn-warning', function(e) {
+        $('#container #contest_list .btn-warning').bind('click', function(e) {
             //alert($(this).attr('data-link'));
             var contest_id = $(this).attr('data-link');
             $.get('./contest_add.html', function(data) {
@@ -371,7 +472,7 @@ var admin = {
     },
 
     contest_update: function() {
-        $('#container').on('click', '#btn_contest_update', function(e) {
+        $('#container #btn_contest_update').bind('click', function(e) {
             var select = $('#contest_update input:radio:checked');
             admin.request(admin.config.contest_update, JSON.stringify({
                 'contest_id': $('#contest_id').val(),
@@ -459,7 +560,7 @@ var admin = {
                         str += '<td>' + value["username"] + '</td><td>';
 
                         $.each(value["role"], function(subindex, subvalue) {
-                            str += '<span class="label label-primary">'+subvalue+'</span>';
+                            str += '<span class="label label-success">'+subvalue+'</span>';
                         });
 
                         str += '</td></tr>';
@@ -481,7 +582,7 @@ var admin = {
 
     user_admin_grant: function() {
 
-        $('#container').on('click', 'input[type=checkbox]', function(e) {
+        $('#container input[type=checkbox]').bind('click', function(e) {
             if ($(this).is(':checked')) {
                 $(this).parent().css('background-color', '#36648B');
             } else {
@@ -489,7 +590,7 @@ var admin = {
             }
         });
 
-        $('#container #btn_admin_grant').click(function() {
+        $('#container #btn_admin_grant').bind('click', function(e) {
             var role_list = [];
             $('#container .list-group input[type=checkbox]:checked').each(function() {
                 role_list.push($(this).val());
@@ -541,6 +642,9 @@ var admin = {
 
                     $('#container .list-group').append(str);
 
+                    admin.search_user();
+                    admin.user_admin_grant();
+
                 } else {
                     alert(response.msg);
                 }
@@ -551,7 +655,8 @@ var admin = {
         });
     },
     search_user: function() {
-        $('#container').on('click', '#btn_search_user', function(e) {
+
+        $('#container #btn_search_user').bind('click', function(e) {
             var username = $('#container #username').val();
             $.ajax({
                 url: admin.config.user_search_user,
@@ -572,6 +677,7 @@ var admin = {
                         str += '</td></tr>';
 
                         $('#container #search_result').html(str);
+
                     } else {
                         //alert(response.msg);
                         $('#container .form-inline strong').text(response.msg);

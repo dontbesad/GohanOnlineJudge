@@ -16,6 +16,25 @@ class Action_List {
 
         $visible = check_admin() ? 0 : 1; //管理员可以看见不可见的题目
         $ret['list'] = Oj::get_problem_list_page(($page - 1)*$size, $size, $visible);
+
+        $login_data = parse_login();
+        $user_id = empty($login_data) ? 0 : $login_data['user_id'];
+
+        foreach ($ret['list'] as &$problem) {
+            if (empty($user_id)) {
+                $problem['status'] = 0; //0未提交，-1错误, 1AC
+                continue;
+            }
+            $solution_list = Oj::get_solution_by_contest(['result'], ['user_id' => $user_id, 'contest_id' => 0, 'problem_id' => $problem['problem_id']]);
+            if (empty($solution_list)) {
+                $problem['status'] = 0;
+            } else if (in_array(1, array_column($solution_list, 'result'))) {
+                $problem['status'] = 1;
+            } else {
+                $problem['status'] = -1;
+            }
+        }
+
         $ret['num']  = Oj::get_problem_num($visible);
 
         return $ret;

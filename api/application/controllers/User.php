@@ -57,4 +57,17 @@ class User extends MY_Controller {
 		$this->json_response($ret);
     }
 
+	//用户信息
+	public function info($user_id=0) {
+		$this->load->library('User/Action_Info');
+		try {
+			$ret['data'] = $this->action_info->execute($user_id);
+			$ret['code'] = 0;
+		} catch (Exception $e) {
+			$ret['msg']  = $e->getMessage();
+			$ret['code'] = $e->getCode();
+		}
+		$this->json_response($ret);
+	}
+
 }

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title></title>
+        <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <link rel="stylesheet" href="./css/common.css">
+    </head>
+    <body>
+
+        <div id="top">
+            <img src="/OJ/web/image/top.png">
+        </div>
+
+        <div id="header">
+            <ul class="nav nav-tabs">
+                <li role="presentation" id="index"><a href="index.html">首页</a></li>
+                <li role="presentation" id="status"><a href="status.html">运行状态</a></li>
+                <li role="presentation" id="problemlist"><a href="problemlist.html">题目列表</a></li>
+                <li role="presentation" id="contestlist"><a href="contestlist.html">比赛列表</a></li>
+                <li role="presentation" id="ranklist"><a href="ranklist.html">排名</a></li>
+                <li role="presentation" id="other"><a href="other.html">更多</a></li>
+
+                <li role="presentation" style="float:right"><a href="javascript:0;" data-toggle="modal" data-target="#register">注册</a></li>
+                <li role="presentation" style="float:right"><a href="javascript:0;" data-toggle="modal" data-target="#login">登录</a></li>
+                <li role="presentation" id="account" class="dropdown"></li>
+            </ul>
+        </div>
+
+        <div id="main">
+            <div id="container">
+
+                <div class="row">
+                    <div class="col-md-12 text-center" style="padding:1em 0;">
+                        <h1 id="title"></h1>
+                    </div>
+                </div>
+                <div class="description">
+
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="progress">
+                            <div id="progress" class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3 text-center" id="start_time"></div>
+                    <div class="col-md-6 text-center">
+                        <strong style="font-size:1.3em;" id="countdown"></strong>
+                    </div>
+                    <div class="col-md-3 text-center" id="end_time"></div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-12" id="contest_header">
+                        <ul class="nav nav-pills">
+                          <li role="presentation"><a href="#problem-list">题目</a></li>
+                          <li role="presentation"><a href="#status">状态</a></li>
+                          <li role="presentation"><a href="#rank">排名</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <br>
+                <div class="row">
+                    <div class="col-md-12" id="display">
+
+                    </div>
+
+                    <div class="modal fade" id="sourceModal" tabindex="-1" role="dialog" aria-labelledby="sourceModalLabel">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                    <h4 class="modal-title" id="sourceModalLabel">代码提交</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="form-group">
+                                        <label for="order_id">比赛题目编号</label>
+                                        <input class="form-control" id="order_id" name="order_id" disabled>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="source_code">代码</label>
+                                        <textarea class="form-control" rows="10" id="source_code" name="source_code"></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="language">语言</label>
+                                        <select class="form-control" id="language" name="language">
+                                          <option value="1">c</option>
+                                          <option value="2" selected>c++</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary" id="btn_source">提交</button>
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </body>
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="./js/require.js"></script>
+    <script type="text/javascript" src="./js/contest.js"></script>
+</html>

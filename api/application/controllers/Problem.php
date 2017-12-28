@@ -18,10 +18,10 @@ class Problem extends MY_Controller {
 		$this->json_response($ret);
 	}
 
-	public function show($problem_id=1000) {
-		$this->load->library('Problem/Action_Problem');
+	public function info($problem_id=1000) {
+		$this->load->library('Problem/Action_Info');
 		try {
-			$ret['data'] = $this->action_problem->execute($problem_id);
+			$ret['data'] = $this->action_info->execute($problem_id);
 			$ret['code'] = 0;
 		} catch (Exception $e) {
 			$ret['msg']  = $e->getMessage();
@@ -47,6 +47,18 @@ class Problem extends MY_Controller {
 		$this->load->library('Problem/Action_Status');
 		try {
 			$ret['data'] = $this->action_status->execute($page, $size);
+			$ret['code'] = 0;
+		} catch (Exception $e) {
+			$ret['msg']  = $e->getMessage();
+			$ret['code'] = $e->getCode();
+		}
+		$this->json_response($ret);
+	}
+
+	public function ranklist($page=1, $size=10) {
+		$this->load->library('Problem/Action_Ranklist');
+		try {
+			$ret['data'] = $this->action_ranklist->execute($page, $size);
 			$ret['code'] = 0;
 		} catch (Exception $e) {
 			$ret['msg']  = $e->getMessage();

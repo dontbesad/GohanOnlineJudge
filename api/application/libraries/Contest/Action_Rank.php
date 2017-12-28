@@ -31,14 +31,11 @@ class Action_Rank {
     public function execute($contest_id) {
 
         $contest = $this->filter($contest_id);
+        $contest_problem = Oj::get_problem_list_by_contest($contest_id);
+        $ret['problem_list'] = empty($contest_problem) ? [] : array_column($contest_problem, 'order_id');
 
         $contest_user_list = Oj::get_contest_user_list($contest_id);
 
-        foreach ($contest_user_list as &$contest_user) {
-            $user = Oj::get_user_info_by_id($contest_user['user_id']);
-            $contest_user['username'] = $user['username'];
-        }
-        
         $ret['list'] = $contest_user_list;
 
         return $ret;

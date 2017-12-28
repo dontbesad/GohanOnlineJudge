@@ -2,11 +2,8 @@ h1,h2,h3,h4,p {
     margin: 0;
     padding: 0;
 }
-#top {
-    padding: 1em 8px;
-}
-#top h1 {
-    display: inline-block;
+#top img {
+    margin: 5px 0;
 }
 
 #main {

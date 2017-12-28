@@ -23,14 +23,18 @@ class Action_Register {
             throw new Exception('请先登录', 100);
         }
 
+        $user = Oj::get_user_info_by_id($login_data['user_id']);
         $contest_user = Oj::get_contest_user($login_data['user_id'], $post_data['contest_id']);
-        if (!empty($contest_user)) {
+        if (empty($user)) {
+            throw new Exception('你所登录的用户不存在', 400);
+        } else if (!empty($contest_user)) {
             throw new Exception('你已注册比赛,请尝试刷新页面', 400);
         }
 
         if ($contest['private']) {
-
-            if (empty($post_data['contest_password']) || !preg_match('/^\w+$/', $post_data['contest_password'])) {
+            if (empty($post_data['contest_password'])) {
+                throw new Exception('比赛密码不能为空', 100);
+            } else if (!preg_match('/^\w+$/', $post_data['contest_password'])) {
                 throw new Exception('比赛密码格式不正确', 100);
             } else if ($post_data['contest_password'] != $contest['password']) {
                 throw new Exception('比赛密码错误', 400);
@@ -38,7 +42,7 @@ class Action_Register {
 
         }
 
-        if (Oj::insert_contest_user(['user_id' => $login_data['user_id'], 'contest_id' => $post_data['contest_id']])) {
+        if (Oj::insert_contest_user(['user_id' => $login_data['user_id'], 'contest_id' => $post_data['contest_id'], 'username' => $user['username'], 'nickname' => $user['nickname']])) {
             //注册成功
             return true;
         } else {

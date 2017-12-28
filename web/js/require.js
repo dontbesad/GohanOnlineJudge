@@ -5,7 +5,7 @@ var api_list = {
     status: api_root + 'index.php/problem/status/',
     problemlist: api_root + 'index.php/problem/list/',
     contestlist: api_root + 'index.php/contest/list/',
-    ranklist: api_root + 'index.php',
+    ranklist: api_root + 'index.php/problem/ranklist/',
     other: 'c',
 
     source_code: api_root + 'index.php/problem/source_code/',
@@ -14,13 +14,15 @@ var api_list = {
     register: api_root + 'index.php/user/register',
     verify: api_root + 'index.php/user/verify',
     quit: api_root + 'index.php/user/quit',
+
+    user_info: api_root + 'index.php/user/info/',
+    problem_info: api_root + 'index.php/problem/info/'
 }
 
 var load_template = {
     init: function() {
         $.get(web_root + 'template/top.html', function(data) {
-            $('#top').html(data);
-
+            $('#top').append(data);
             register.init();
             login.init();
             verify.init();
@@ -35,6 +37,7 @@ var require = {
     //页面html名对应的接口
     //进入页面html名加载的时候
     init: function () {
+
         var html_name = require.get_html_doc_name();
         var url_param = require.get_url_param('page');
         var size = 10; //每页的数目
@@ -59,7 +62,6 @@ var require = {
                 break;
         }
         //$('#main').css('background-image', 'url(/gohan.jpg)');
-        $(document.body).css('background-color', '#CDC9A5');
         //$(document.body).css('background', 'url(./image/gohan2.jpg) no-repeat fixed center');
         //$(document.body).css('background-size', '100%');
     },
@@ -102,7 +104,7 @@ var require = {
                         require.pagination(data.num, page, size);
                         break;
                     case 'contestlist':
-                        require.show_contestlist(data);
+                        require.show_contestlist(data, page, size);
                         require.pagination(data.num, page, size);
                         break;
                     case 'ranklist':
@@ -134,8 +136,8 @@ var require = {
     show_status: function(data) {
 
         var data = data.list;
-        var str = '<table class="table table-hover">';
-        str += '<tr><th>提交号</th><th>用户</th><th>题号</th><th>状态</th><th>运行时间(MS)</th><th>运行内存(KB)</th><th>代码长度</th><th>语言</th><th>提交时间</th></tr>';
+        var str = '<table class="table table-hover table-bordered">';
+        str += '<tr class="success"><th>提交号</th><th>用户</th><th>题号</th><th>状态</th><th>运行时间(MS)</th><th>运行内存(KB)</th><th>代码长度</th><th>语言</th><th>提交时间</th></tr>';
         $.each(data, function(index, value) {
             str += '<tr>';
             str += '<td>' + value['solution_id'] + '</td>';
@@ -193,14 +195,23 @@ var require = {
 
     show_problemlist: function(data) {
         var data = data.list;
-        var str = '<table class="table table-hover">';
-        str += '<tr><th>编号</th><th>标题</th><th>提交数</th><th>AC数</th></tr>';
+        var str = '<table class="table table-hover table-bordered">';
+        str += '<tr class="success"><th>状态</th><th>编号</th><th>标题</th><th>AC/提交(通过率)</th></tr>';
         $.each(data, function(index, value) {
             str += '<tr>'
+            if (value.status == 1) {
+                str += '<td style="color:green;"><span class="glyphicon glyphicon-ok" aria-hidden="true"></span></td>';
+            } else if (value.status == -1) {
+                str += '<td style="color:red;"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></td>';
+            } else {
+                str += '<td></td>';
+            }
             str += '<td><a href="problem.html?pid='+value['problem_id']+'">' + value['problem_id'] + '</a></td>';
             str += '<td><a href="problem.html?pid='+value['problem_id']+'">' + value['title'] + '</a></td>';
-            str += '<td>' + value['submit_num'] + '</td>';
-            str += '<td>' + value['accepted_num'] + '</td>';
+            var ratio = (parseInt(value['submit_num']) == 0 ? 0 : parseInt(value['accepted_num']) / parseInt(value['submit_num']));
+            ratio *= 100;
+            ratio = ratio.toFixed(2);
+            str += '<td>' + value['accepted_num'] + ' / ' + value['submit_num'] + '（' + ratio + '%）' + '</td>';
             str += '</tr>';
 
         });
@@ -209,29 +220,68 @@ var require = {
     },
 
     show_contestlist: function(data) {
+        function pad(s) {
+            return s < 10 ? '0' + s: s;
+        }
         var data = data.list;
-        var str = '<table class="table table-hover">';
-        str += '<tr><th>比赛编号</th><th>标题</th><th>开始时间</th><th>结束时间</th><th>权限</th></tr>';
+        var str = '<table class="table table-hover table-bordered">';
+        str += '<tr class="success"><th>比赛编号</th><th>标题</th><th>开始时间</th><th>结束时间</th><th>比赛时长</th><th>比赛权限</th><th>比赛状态</th></tr>';
         $.each(data, function(index, value) {
             str += '<tr>'
-            str += '<td><a href="contest/?cid=' + value['contest_id'] + '">' + value['contest_id'] + '</a></td>';
-            str += '<td><a href="contest/?cid=' + value['contest_id'] + '">' + value['title'] + '</a></td>';
+            str += '<td><a href="contest.html?cid=' + value['contest_id'] + '">' + value['contest_id'] + '</a></td>';
+            str += '<td><a href="contest.html?cid=' + value['contest_id'] + '">' + value['title'] + '</a></td>';
             str += '<td>' + value['start_time'] + '</td>';
             str += '<td>' + value['end_time'] + '</td>';
+
+            var start = require.DateToUnix(value.start_time);
+            var end   = require.DateToUnix(value.end_time);
+            var now   = Date.parse(new Date()) / 1000;
+
+            var hour = Math.floor((end - start) / 3600);
+            var minu = Math.floor((end - start - hour * 3600) / 60);
+            var seco = Math.floor(end - start - hour * 3600 - minu * 60);
+            str += '<td>'+pad(hour)+':'+pad(minu)+':'+pad(seco)+'</td>';
+
             if (value['private'] == 1) {
                 str += '<td><span style="color:red;">Private</span></td>';
             } else {
                 str += '<td><span style="color:green;">Public</span></td>';
             }
-            str += '</tr>';
 
+            if (now < start) {
+                str += '<td style="color:blue;">未开始</td>';
+            } else if (now > end) {
+                str += '<td>已结束</td>';
+            } else {
+                str += '<td style="color:red;">进行中</td>';
+            }
+
+            str += '</tr>';
         });
         str += '</table>';
         $('#container').html(str)
     },
 
-    show_ranklist: function(data) {
-        $('#container').html('xxxx');
+    show_ranklist: function(data, page=1, size=10) {
+        var data = data.list;
+        var str = '<table class="table table-hover table-bordered">';
+        str += '<tr class="success"><th>排名</th><th>用户名</th><th>昵称</th><th>解决量</th><th>提交量</th></tr>';
+        $.each(data, function(index, value) {
+            str += '<tr>';
+
+            var rank = (page - 1) * size + index + 1;
+            str += '<td>' + rank + '</td>';
+            str += '<td><a href="user.html?uid='+value.user_id+'">' + value.username + '</a></td>';
+            str += '<td>' + value.nickname + '</td>';
+            str += '<td>' + value.solved_num + '</td>';
+            str += '<td>' + value.submit_num + '</td>';
+            
+            str += '</tr>';
+
+        });
+        str += '</table>';
+
+        $('#container').html(str);
     },
 
     pagination: function(num, page=1, size=10) {
@@ -257,6 +307,20 @@ var require = {
             }
             str += '</ul></nav>';
         $('#container').after(str);
+    },
+
+    DateToUnix: function(string) {
+        var f = string.split(' ', 2);
+        var d = (f[0] ? f[0] : '').split('-', 3);
+        var t = (f[1] ? f[1] : '').split(':', 3);
+        return (new Date(
+                parseInt(d[0], 10) || null,
+                (parseInt(d[1], 10) || 1) - 1,
+                parseInt(d[2], 10) || null,
+                parseInt(t[0], 10) || null,
+                parseInt(t[1], 10) || null,
+                parseInt(t[2], 10) || null
+                )).getTime() / 1000;
     }
 
 };
@@ -282,21 +346,23 @@ var verify = {
         })
     },
     show_account: function(data) {
-        var str = '<div class="btn-group">';
-        str += '<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
-        str += data.username + '&nbsp;&nbsp;<span class="caret"></span>';
-        str += '</button><ul class="dropdown-menu dropdown-menu-right">';
+        $('a[data-target="#register"]').css('display', 'none');
+        $('a[data-target="#login"]').css('display', 'none');
 
-        str += '<li><a href="javascript:0;">个人信息</a></li>';
+        var str = '<a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">';
+        str += data.username + '&nbsp;&nbsp;<span class="caret"></span></a>';
+        str += '<ul class="dropdown-menu dropdown-menu-right">';
+
+        str += '<li><a href="user.html?uid='+data.user_id+'">个人信息</a></li>';
 
         if (data.admin) {
-            str += '<li><a href="/OJ/web/admin">后台页面</a></li>';
+            str += '<li><a href="admin">后台页面</a></li>';
         }
 
         str += '<li role="separator" class="divider"></li>';
 
-        str += '<li><a href="javascript:0;" id="quit"><span class="glyphicon glyphicon-off" aria-hidden="true"></span>退出登录</a></li>';
-        str += '</ul></div>';
+        str += '<li><a href="javascript:0;" id="quit">退出登录</a></li>';
+        str += '</ul>';
         $('#account').html(str);
 
         $('#quit').click(function () {
@@ -321,6 +387,7 @@ var register = {
     request: function() {
         var post_data = {
             username: $('#register #username').val(),
+            nickname: $('#register #nickname').val(),
             password: $('#register #password').val(),
             password_again: $('#register #password_again').val(),
             email: $('#register #email').val(),

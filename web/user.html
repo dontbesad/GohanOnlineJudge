@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title></title>
+        <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <link rel="stylesheet" href="css/common.css">
+    </head>
+    <body>
+        <div id="top">
+            <img src="/OJ/web/image/top.png">
+        </div>
+
+
+        <div id="header">
+            <ul class="nav nav-tabs">
+                <li role="presentation" id="index"><a href="index.html">首页</a></li>
+                <li role="presentation" id="status"><a href="status.html">运行状态</a></li>
+                <li role="presentation" id="problemlist"><a href="problemlist.html">题目列表</a></li>
+                <li role="presentation" id="contestlist"><a href="contestlist.html">比赛列表</a></li>
+                <li role="presentation" id="ranklist"><a href="ranklist.html">排名</a></li>
+                <li role="presentation" id="other"><a href="other.html">更多</a></li>
+
+                <li role="presentation" style="float:right"><a href="javascript:0;" data-toggle="modal" data-target="#register">注册</a></li>
+                <li role="presentation" style="float:right"><a href="javascript:0;" data-toggle="modal" data-target="#login">登录</a></li>
+                <li role="presentation" id="account" class="dropdown"></li>
+            </ul>
+        </div>
+
+        <div id="main">
+            <div id="container" class="table-responsive">
+                <div class="panel panel-info">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">用户信息</h3>
+                    </div>
+                    <ul class="list-group" id="user_info" >
+                        <li class="list-group-item"><strong><span class="glyphicon glyphicon-user"></span>用户名: </strong>Recoder</li>
+                        <li class="list-group-item"><strong><span class="glyphicon glyphicon-sunglasses"></span>昵称: </strong>Recoder</li>
+                        <li class="list-group-item"><strong><span class="glyphicon glyphicon-education"></span>学校: </strong>nbut</li>
+                        <li class="list-group-item"><strong><span class="glyphicon glyphicon-envelope"></span>邮箱: </strong>Recoder@qq.com</li>
+                        <li class="list-group-item"><strong><span class="glyphicon glyphicon-pencil"></span>格言: </strong>hello world</li>
+                        <li class="list-group-item"><strong><span class="glyphicon glyphicon-saved"></span>解决题数: </strong>123</li>
+                        <li class="list-group-item"><strong><span class="glyphicon glyphicon-open"></span>提交题数: </strong>123</li>
+                        <li class="list-group-item"><strong><span class="glyphicon glyphicon-edit"></span>注册时间: </strong>hello world</li>
+                    </ul>
+                </div>
+                <div class="panel panel-success">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">已解决问题</h4>
+                    </div>
+                    <div class="panel-body" id="solved_problem">
+                    </div>
+                </div>
+                <div class="panel panel-warning">
+                    <div class="panel-heading">
+                        <h5 class="panel-title">未解决问题</h5>
+                    </div>
+                    <div class="panel-body" id="unsolved_problem">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </body>
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/require.js"></script>
+    <script type="text/javascript">
+    $(document).ready(function() {
+        function get_url_param(name) {
+            //构造一个含有目标参数的正则表达式对象
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+            //匹配目标参数
+            var r = window.location.search.substr(1).match(reg);
+            //返回参数值
+            if (r != null) return unescape(r[2]);
+            //不存在时返回null
+            return null;
+        }
+        var user_id = get_url_param('uid');
+
+        $.ajax({
+            url: '/OJ/api/index.php/user/info/' + user_id,
+            type: 'GET',
+            success: function(response) {
+                if (!response.code) {
+                    console.log(response);
+                    var data = response.data;
+                    var str = '';
+                    str += '<li class="list-group-item"><strong><span class="glyphicon glyphicon-user"></span>用户名: </strong>'+data.username+'</li>';
+                    str += '<li class="list-group-item"><strong><span class="glyphicon glyphicon-sunglasses"></span>昵称: </strong>'+data.nickname+'</li>';
+                    str += '<li class="list-group-item"><strong><span class="glyphicon glyphicon-education"></span>学校: </strong>'+data.school+'</li>';
+                    str += '<li class="list-group-item"><strong><span class="glyphicon glyphicon-envelope"></span>邮箱: </strong>'+data.email+'</li>';
+                    str += '<li class="list-group-item"><strong><span class="glyphicon glyphicon-pencil"></span>格言: </strong>'+data.description.replace('\n', '<br>').replace(' ', '&nbsp;')+'</li>';
+                    str += '<li class="list-group-item"><strong><span class="glyphicon glyphicon-saved"></span>解决题数: </strong>'+data.solved_num+'</li>';
+                    str += '<li class="list-group-item"><strong><span class="glyphicon glyphicon-open"></span>提交题数: </strong>'+data.submit_num+'</li>';
+                    str += '<li class="list-group-item"><strong><span class="glyphicon glyphicon-edit"></span>注册时间: </strong>'+data.reg_time+'</li>';
+                    $('#user_info').html(str);
+                    $('#user_info li').css('border', '0');
+                    $('#user_info li strong').css('color', '#1E4F4F');
+
+                    str = '';
+                    $.each(data.solved_problem, function(index, value) {
+                        str += '<a href="problem.html?pid='+value+'">'+value+'</a>';
+                    });
+                    $('#solved_problem').html(str);
+
+                    str = '';
+                    $.each(data.unsolved_problem, function(index, value) {
+                        str += '<a href="problem.html?pid='+value+'">'+value+'</a>';
+                    });
+                    $('#unsolved_problem').html(str);
+
+
+                } else {
+                    alert(response.msg);
+                }
+            },
+            error: function() {
+                console.log('Error');
+            }
+        });
+
+    });
+    </script>
+</html>

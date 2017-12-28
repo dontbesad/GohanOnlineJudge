@@ -9,13 +9,13 @@ class Oj extends CI_Model {
         }
         if ($visible == 1) {
             $problem_list = get_db()
-                ->select('problem_id, title, source, accepted_num, submit_num')
+                ->select('problem_id, title, source, accepted_num, submit_num, visible')
                 ->limit($limit, $offset)
                 ->get_where('sys_problem', ['visible' => $visible])
                 ->result_array();
         } else {
             $problem_list = get_db()
-                ->select('problem_id, title, source, accepted_num, submit_num')
+                ->select('problem_id, title, source, accepted_num, submit_num, visible')
                 ->limit($limit, $offset)
                 ->get_where('sys_problem')
                 ->result_array();
@@ -61,9 +61,27 @@ class Oj extends CI_Model {
     static public function get_solution($solution_id) {
         $solution = get_db()
             ->select('*')
-            ->get_where('sys_solution', ['solution_id' => $solution_id])
+            ->get_where('sys_solution', ['solution_id' => $solution_id, 'valid' => 1])
             ->row_array();
         return $solution;
+    }
+
+    static public function get_solved_problem_solution($user_id, $contest_id=0) {
+        $solved_problem = get_db()
+            ->select('DISTINCT(problem_id)')
+            ->order_by('problem_id ASC')
+            ->get_where('sys_solution', ['user_id' => $user_id, 'contest_id' => $contest_id, 'result' => 1, 'valid' => 1])
+            ->result_array();
+        return $solved_problem;
+    }
+
+    static public function get_unsolved_problem_solution($user_id, $contest_id=0) {
+        $unsolved_problem = get_db()
+            ->select('DISTINCT(problem_id)')
+            ->order_by('problem_id ASC')
+            ->get_where('sys_solution', ['user_id' => $user_id, 'contest_id' => $contest_id, 'result <>' => 1, 'valid' => 1])
+            ->result_array();
+        return $unsolved_problem;
     }
 
     static public function get_solution_by_contest($select_data, $where_data) {
@@ -127,9 +145,9 @@ class Oj extends CI_Model {
     //得到所有比赛题目数目
     static public function get_contest_num() {
         $contest = get_db()
-        ->select('COUNT(1) AS num')
-        ->get_where('sys_contest')
-        ->row_array();
+            ->select('COUNT(1) AS num')
+            ->get_where('sys_contest')
+            ->row_array();
         return empty($contest) ? 0 : $contest['num'];
     }
 
@@ -176,7 +194,7 @@ class Oj extends CI_Model {
     //获取用户所注册的比赛信息
     static public function get_contest_user($user_id, $contest_id) {
         $contest_user = get_db()
-            ->select('user_id, contest_id')
+            ->select('user_id, contest_id, solved_num, penalty, state')
             ->get_where('sys_contest_user', ['user_id' => $user_id, 'contest_id' => $contest_id])
             ->row_array();
         return $contest_user;
@@ -185,7 +203,8 @@ class Oj extends CI_Model {
     //获取比赛注册的所有用户
     static public function get_contest_user_list($contest_id) {
         $contest_user_list = get_db()
-            ->select('user_id')
+            ->select('*')
+            ->order_by('solved_num DESC, penalty ASC, id ASC')
             ->get_where('sys_contest_user', ['contest_id' => $contest_id])
             ->result_array();
         return $contest_user_list;
@@ -205,6 +224,23 @@ class Oj extends CI_Model {
                 ->row_array();
         }
         return $user;
+    }
+
+    static public function get_ranklist_page($offset, $limit) {
+        $ranklist = get_db()
+            ->select('user_id,username,nickname,solved_num,submit_num')
+            ->limit($limit, $offset)
+            ->get_where('sys_user')
+            ->result_array();
+        return $ranklist;
+    }
+
+    static public function get_user_num() {
+        $user = get_db()
+            ->select('COUNT(1) AS num')
+            ->get_where('sys_user')
+            ->row_array();
+        return empty($user) ? 0 : $user['num'];
     }
 
     //获取某个后台接口下对应的rule_id
@@ -277,7 +313,7 @@ class Oj extends CI_Model {
     //根据id获取user信息
     static public function get_user_info_by_id($user_id) {
         $user = get_db()
-            ->select('username')
+            ->select('username,nickname,email,description,school,reg_time,submit_num,solved_num,accepted_num')
             ->get_where('sys_user', ['user_id' => $user_id])
             ->row_array();
         return $user;
@@ -358,9 +394,21 @@ class Oj extends CI_Model {
         return get_db()->affected_rows();
     }
 
+    static public function update_contest_user($contest_id, $user_id, $update_data) {
+        get_db()
+            ->update('sys_contest_user', $update_data, ['contest_id' => $contest_id, 'user_id' => $user_id]);
+        return get_db()->affected_rows();
+    }
+
     static public function update_contest($contest_id, $update_data) {
         get_db()
             ->update('sys_contest', $update_data, ['contest_id' => $contest_id]);
+        return get_db()->affected_rows();
+    }
+
+    static public function update_problem($problem_id, $update_data) {
+        get_db()
+            ->update('sys_problem', $update_data, ['problem_id' => $problem_id]);
         return get_db()->affected_rows();
     }
 

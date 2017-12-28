@@ -58,7 +58,29 @@ class Problem extends MY_Controller {
 		$this->json_response($ret);
 	}
 
+	public function info($problem_id=0) {
+		$this->load->library('Admin/Problem/Action_Info');
+		try {
+			$ret['data'] = $this->action_info->execute($problem_id);
+			$ret['errno'] = 0;
+		} catch (Exception $e) {
+			$ret['msg']  = $e->getMessage();
+			$ret['errno'] = $e->getCode();
+
+		}
+		$this->json_response($ret);
+	}
+
 	public function update() {
-		echo '404';
+		$this->load->library('Admin/Problem/Action_Update');
+		try {
+			$ret['data'] = $this->action_update->execute();
+			$ret['code'] = 0;
+		} catch (Exception $e) {
+			$ret['msg']  = $e->getMessage();
+			$ret['code'] = $e->getCode();
+
+		}
+		$this->json_response($ret);
 	}
 }

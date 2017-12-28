@@ -1,15 +1,17 @@
 var contest = {
     api_url: {
-        'index': '../../api/index.php/contest/info/',
-        'problem-list': '../../api/index.php/contest/problem_list/',
-        'status': '../../api/index.php/contest/status/',
-        'rank': '../../api/index.php/contest/rank/',
-        'problem': '../../api/index.php/contest/problem/',
-        'submit': '../../api/index.php/contest/submit',
-        'contest_register': '../../api/index.php/contest/register',
+        'index': '../api/index.php/contest/info/',
+        'problem-list': '../api/index.php/contest/problem_list/',
+        'status': '../api/index.php/contest/status/',
+        'rank': '../api/index.php/contest/rank/',
+        'problem': '../api/index.php/contest/problem/',
+        'submit': '../api/index.php/contest/submit',
+        'contest_register': '../api/index.php/contest/register',
     },
     init: function() {
         contest.index(); //比赛基本信息
+        contest.submit_source();
+
         if (location.href.indexOf('#') > 0) {
             var action = location.href.split('#')[1];
 
@@ -79,6 +81,7 @@ var contest = {
                                 contest.show_problem_list(response.data);
                             } else if (sign != undefined) {
                                 contest.show_problem(response.data);
+
                             } else {
                                 console.log('Empty');
                             }
@@ -218,8 +221,8 @@ var contest = {
     },
     //比赛中的题目列表
     show_problem_list: function(data) {
-        var str = '<table class="table table-hover" id="problem_list">';
-        str += '<tr><th>解决</th><th>ID</th><th>标题</th><th>比例(解决数/提交数目)</th></tr>';
+        var str = '<table class="table table-hover table-bordered" id="problem_list">';
+        str += '<tr class="success"><th>解决</th><th>ID</th><th>标题</th><th>比例(解决数/提交数目)</th></tr>';
         $.each(data.list, function(index, value) {
             var ratio = (parseInt(value['submit_num']) == 0 ? 0 : parseInt(value['solved_num']) / parseInt(value['submit_num']));
             ratio *= 100;
@@ -248,8 +251,8 @@ var contest = {
     show_status: function(data) {
         //console.log(data);
         var data = data.list;
-        var str = '<table class="table table-hover">';
-        str += '<tr><th>比赛提交号</th><th>用户</th><th>比赛题号</th><th>状态</th><th>运行时间(MS)</th><th>运行内存(KB)</th><th>代码长度</th><th>语言</th><th>提交时间</th></tr>';
+        var str = '<table class="table table-hover table-bordered">';
+        str += '<tr class="success"><th>比赛提交号</th><th>用户</th><th>比赛题号</th><th>状态</th><th>运行时间(MS)</th><th>运行内存(KB)</th><th>代码长度</th><th>语言</th><th>提交时间</th></tr>';
         $.each(data, function(index, value) {
             str += '<tr>';
             str += '<td>' + value['solution_id'] + '</td>';
@@ -307,15 +310,58 @@ var contest = {
         });
     },
     show_rank: function(data) {
-        $('#display').html(data);
+        function pad(val) {
+            return val < 10 ? ('0' + val) : val;
+        }
 
-        var data = data.list;
-        var str = '<table class="table table-hover">';
-        str += '<tr><th>排名</th><th>队伍名</th></tr>';
-        $.each(data, function(index, value) {
+        var user_data = data.list, problem_data = data.problem_list;
+        var str = '<table class="table table-hover table-bordered" style="text-align:center;">';
+        str += '<tr class="success"><th>#</th><th>username</th><th>nickname</th><th style="color:green">solved</th><th style="color:#EE3B3B">penalty</th>';
+        var problem_num = 0;
+        $.each(problem_data, function(index, value) {
+            str += '<th style="color:#53868B">'+value+'</th>';
+            ++problem_num;
+        });
+        str += '</tr>';
+        $.each(user_data, function(index, value) {
             str += '<tr>';
             str += '<td>' + (parseInt(index) + 1) + '</td>';
             str += '<td>' + value['username'] + '</td>';
+            str += '<td style="color:#666;">' + value['nickname'] + '</td>';
+            str += '<td>' + value['solved_num'] + '</td>';
+            var penalty = Math.floor(value.penalty / 60);
+            str += '<td>' + penalty + '</td>';
+
+            if (value.state == undefined) {
+                for (var j = 0; j < problem_num; ++j) {
+                    str += '<td></td>';
+                }
+            } else {
+                var state = JSON.parse(value.state);
+                console.log(state);
+                var ii = 0;
+                $.each(state, function(index, value) {
+                    while (index.charCodeAt() - 65 != ii) {
+                        str += '<td></td>';
+                        ++ii;
+                    }
+                    if (value.ac) {
+                        var hour = Math.floor(value.ac_time / 3600);
+                        var minu = Math.floor((value.ac_time - hour * 3600) / 60);
+                        var ac_time = pad(hour) + ':' + pad(minu);
+                        if (value.fb) {
+                            str += '<td style="background:SeaGreen;color:#fff;"><span>+'+(value.wa_num==0 ? '':value.wa_num)+'</span><br><span style="font-size:.8em;">'+ac_time+'</span></td>';
+                        } else {
+                            str += '<td style="background:PaleGreen;color:green;"><span>+'+(value.wa_num==0 ? '':value.wa_num)+'</span><br><span style="font-size:.8em;color:#666;">'+ac_time+'</span></td>';
+                        }
+
+                    } else {
+                        str += '<td><strong style="color:Tomato;">+'+value.wa_num+'</strong></td>';
+                    }
+                    ++ii;
+                });
+            }
+
             str += '</tr>';
 
         });
@@ -355,12 +401,10 @@ var contest = {
 
         $('#order_id').val(data.order_id);
         $('#display').html(str);
-
-        contest.submit_source();
     },
     //比赛中提交代码
     submit_source: function() {
-        $(document.body).on('click', '#btn_source', function() {
+        $('#btn_source').click(function() {
             var post_data = {
                 order_id:    $('#order_id').val(),
                 contest_id:  contest.get_url_param('cid'),
@@ -379,7 +423,7 @@ var contest = {
                         alert('提交成功');
                         $('#sourceModal').modal('hide');
                         location.reload();
-                        location.href = './?cid=' + contest.get_url_param('cid') + '#status';
+                        location.href = '?cid=' + contest.get_url_param('cid') + '#status';
                     } else if (!response.code) {
                         alert('请先登录');
                         $('#sourceModal').modal('hide');

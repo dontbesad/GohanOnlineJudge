@@ -1,6 +1,3 @@
-SET AUTOCOMMIT=0;
-BEGIN;
-
 set names utf8;
 create database oj;
 use oj;
@@ -79,24 +76,36 @@ ALTER TABLE `sys_contest_problem` ADD INDEX i_contest(`contest_id`, `problem_id`
 CREATE TABLE `sys_user` (
     `user_id`     INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `username`    VARCHAR(20) NOT NULL UNIQUE, #用于用户登录名，可以修改，但是不能重名
+    `nickname`    VARCHAR(50) NOT NULL DEFAULT '', #昵称
     `password`    VARCHAR(250) NOT NULL DEFAULT '',
     `reg_time`    DATETIME DEFAULT CURRENT_TIMESTAMP,
     `school`      VARCHAR(100) DEFAULT '',
     `email`       VARCHAR(50) DEFAULT '',
-    `reg_ip`      VARCHAR(20)  DEFAULT '',
     `description` VARCHAR(200) DEFAULT '',
+    `submit_num`  INT NOT NULL DEFAULT 0,
+    `solved_num`  INT NOT NULL DEFAULT 0,
+    `accepted_num`INT NOT NULL DEFAULT 0,
     `valid`       INT(2) DEFAULT 1 #默认有效
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
-ALTER TABLE `sys_user` ADD INDEX i_school(`school`);
+ALTER TABLE `sys_user` ADD INDEX i_school(`solved_num`);
+ALTER TABLE `sys_user` ADD INDEX i_school(`submit_num`);
 
 
-#私有比赛注册用户
+#比赛注册用户
 CREATE TABLE `sys_contest_user` (
     `id`         INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `contest_id` INT NOT NULL DEFAULT 0,
-    `user_id`    INT NOT NULL DEFAULT 0
+    `user_id`    INT NOT NULL DEFAULT 0,
+    `username`   VARCHAR(20) NOT NULL DEFAULT '', #比赛注册时候的用户名
+    `nickname`   VARCHAR(50) NOT NULL DEFAULT '', #比赛昵称
+    `solved_num` INT NOT NULL DEFAULT 0, #用户ac数量
+    `penalty`    INT NOT NULL DEFAULT 0, #罚时
+    `state`      TEXT #用json字符串来描述用户在此比赛中的rank状态
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 ALTER TABLE `sys_contest_user` ADD INDEX i_contest_user(`contest_id`, `user_id`);
+ALTER TABLE `sys_contest_user` ADD INDEX i_penalty(`penalty`);
+ALTER TABLE `sys_contest_user` ADD INDEX i_solved_num(`solved_num`);
+
 
 -- CREATE TABLE `sys_log_login` (
 --     `id`       INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -134,8 +143,19 @@ CREATE TABLE `cfg_rule` (
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 ALTER TABLE `cfg_rule` ADD INDEX i_rule(`class`, `method`);
 
-COMMIT;
-SET AUTOCOMMIT=1;
+INSERT INTO `cfg_rule`(`class`, `method`) VALUES('problem', 'add'), ('problem', 'delete'), ('problem', 'info'), ('problem', 'list'), ('problem', 'update'), ('problem', 'upload_image');
+INSERT INTO `cfg_rule`(`class`, `method`) VALUES('contest', 'add'), ('contest', 'delete'), ('contest', 'info'), ('contest', 'list'), ('contest', 'update');
+INSERT INTO `cfg_rule`(`class`, `method`) VALUES('user', 'admin_grant'), ('user', 'admin_list'), ('user', 'role_list'), ('user', 'search_user');
+
+INSERT INTO `cfg_role`(`name`) VALUES('题目管理'), ('比赛管理'), ('用户管理');
+
+INSERT INTO `cfg_role_rule`(`role_id`, `rule_id`) VALUES(1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6);
+INSERT INTO `cfg_role_rule`(`role_id`, `rule_id`) VALUES(2, 7), (2, 8), (2, 9), (2, 10), (2, 11);
+INSERT INTO `cfg_role_rule`(`role_id`, `rule_id`) VALUES(3, 12), (3, 13), (3, 14), (3, 15);
+
+INSERT INTO `cfg_user_role`(`user_id`, `role_id`) VALUES(1, 1), (1, 2), (1, 3);
+
+
 
 
 -- cfg_language, cfg_result

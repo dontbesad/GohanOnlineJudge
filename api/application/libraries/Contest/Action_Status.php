@@ -45,7 +45,7 @@ class Action_Status {
 
         if ($contest['private']) {
             if ($ret['login']) {
-                $contest_user = Oj::get_contest_user($login_info['user_id'], $contest_id);
+                $contest_user = Oj::get_contest_user($login_data['user_id'], $contest_id);
                 if (empty($contest_user)) {
                     throw new Exception('你未注册私有比赛，不能查看提交记录', 403);
                 }

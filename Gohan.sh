@@ -1,21 +1,26 @@
 #!/bin/bash
+
+SERVER_USER=www-data #www-data对应的是apache
+OJ_PROGRAM=/home/judge/Gohan
+
+#create user and homedir
+sudo useradd -m judge
+
 source ./core/gohan.conf 2> /dev/null
 
-if [ ! -d $OJ_WORKDIR ]; then
-    mkdir -p $OJ_WORKDIR
-fi
+sudo mkdir $OJ_DATADIR
+sudo chown -R judge $OJ_WORKDIR
 
-if [ ! -d $OJ_DATADIR ]; then
-    mkdir -p $OJ_DATADIR
-fi
-sudo chmod -R 0777 $OJ_DATADIR
+#对服务器用户设置特殊权限
+sudo setfacl -b -R $OJ_DATADIR
+sudo setfacl -m u:$SERVER_USER:rwx -R $OJ_DATADIR
 
-gcc ./core/gohan_compiler.c -o $OJ_COMPILER
+sudo gcc ./core/gohan_compiler.c -o $OJ_COMPILER
 
-gcc ./core/gohan_judger.c -o $OJ_JUDGER
+sudo gcc ./core/gohan_judger.c -o $OJ_JUDGER
 
-gcc ./core/gohan_comparer.c -o $OJ_COMPARER
+sudo gcc ./core/gohan_comparer.c -o $OJ_COMPARER
 
-gcc -o ./Gohan ./core/gohan_redis.c ./core/json/cJSON.c -lhiredis -lpthread
+sudo gcc -o $OJ_PROGRAM ./core/gohan_redis.c ./core/json/cJSON.c -lhiredis -lpthread
 
-./Gohan
+sudo $OJ_PROGRAM

@@ -49,6 +49,7 @@ class Judge extends MY_Controller {
                 if ($solution['contest_id'] > 0) {
                     $this->update_contest($solution['problem_id'], $solution['contest_id'], $post_data['result'], $solution['user_id'], $solution['submit_time']);
                 } else {
+                    $this->update_user($solution['user_id'], $solution['problem_id'], $post_data['result']);
                     $this->update_problem($solution['problem_id'], $post_data['result']);
                 }
             }
@@ -98,9 +99,7 @@ class Judge extends MY_Controller {
             }
         } else {
             //wa
-            var_dump($ac_contest_solution);
             if (empty($ac_contest_solution[0]['num'])) {
-                var_dump('houhou');
                 $this->update_contest_rank($problem_id, $contest_id, $result, $user_id, $submit_time);
             }
 
@@ -169,20 +168,39 @@ class Judge extends MY_Controller {
     }
 
     //更新题目中的submit_num和accepted_num
-    private function update_problem($problem_id, $contest_id, $result) {
-        if ($result < 1 || $result > 10 || $contest_id > 0) {
-            return false;
+    private function update_problem($problem_id, $result) {
+        Oj::update_problem_num($problem_id, 'submit_num');
+        if ($result == 1) {
+            Oj::update_problem_num($problem_id, 'accepted_num');
         }
-        if ($contest_id > 0) {
-            Oj::update_contest_problem_num($problem_id, $contest_id, 'submit_num');
+    }
+
+    private function update_user($user_id, $problem_id, $result) {
+        $where_data = [
+            'user_id'    => $user_id,
+            'contest_id' => 0,
+            'problem_id' => $problem_id,
+            'result >='  => 1,
+            'result <='  => 10,
+        ];
+        $solution = Oj::get_solution_by_contest('result', $where_data);
+        var_dump($solution);
+        if (empty($solution)) { //之前从未提交过此题目
+            Oj::update_user_num($user_id, 'submit_num'); //题目提交数+1
             if ($result == 1) {
-                Oj::update_contest_problem_num($problem_id, $contest_id, 'accepted_num');
+                Oj::update_user_num($user_id, 'accepted_num');
+                Oj::update_user_num($user_id, 'solved_num');
             }
         } else {
-            Oj::update_problem_num($problem_id, 'submit_num');
+            $result_list = array_column($solution, 'result');
             if ($result == 1) {
-                Oj::update_problem_num($problem_id, 'accepted_num');
+                Oj::update_user_num($user_id, 'accepted_num');
+
+                if (!in_array(1, $result_list)) { //之前没有ac过此题
+                    Oj::update_user_num($user_id, 'solved_num');
+                }
             }
         }
+
     }
 }

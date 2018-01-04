@@ -102,4 +102,16 @@ class Contest extends MY_Controller {
 		$this->json_response($ret);
 	}
 
+	public function recent_contest() {
+		$this->load->library('Contest/Action_Recent_Contest');
+		try {
+			$ret['data'] = $this->action_recent_contest->execute();
+			$ret['code'] = 0;
+		} catch (Exception $e) {
+			$ret['msg']  = $e->getMessage();
+			$ret['code'] = $e->getCode();
+		}
+		$this->json_response($ret);
+	}
+
 }

@@ -315,7 +315,7 @@ var contest = {
         }
 
         var user_data = data.list, problem_data = data.problem_list;
-        var str = '<table class="table table-hover table-bordered" style="text-align:center;">';
+        var str = '<table class="table table-hover table-bordered" id="rank">';
         str += '<tr class="success"><th>#</th><th>username</th><th>nickname</th><th style="color:green">solved</th><th style="color:#EE3B3B">penalty</th>';
         var problem_num = 0;
         $.each(problem_data, function(index, value) {
@@ -367,6 +367,10 @@ var contest = {
         });
         str += '</table>';
         $('#display').html(str);
+        $('#display #rank th').css('text-align', 'center');
+        $('#display #rank td').css('text-align', 'center');
+        $('#display #rank td').css('vertical-align', 'middle');
+
     },
     show_problem: function(data) {
         console.log(data);

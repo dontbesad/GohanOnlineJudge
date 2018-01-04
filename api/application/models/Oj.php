@@ -230,6 +230,7 @@ class Oj extends CI_Model {
         $ranklist = get_db()
             ->select('user_id,username,nickname,solved_num,submit_num')
             ->limit($limit, $offset)
+            ->order_by('solved_num DESC, submit_num ASC')
             ->get_where('sys_user')
             ->result_array();
         return $ranklist;
@@ -381,6 +382,15 @@ class Oj extends CI_Model {
             ->set($field, $field.'+1', false)
             ->where('problem_id', $problem_id)
             ->update('sys_problem');
+        return get_db()->affected_rows();
+    }
+
+    //更改用户的提交数，解决数等...
+    static public function update_user_num($user_id, $field) {
+        get_db()
+            ->set($field, $field.'+1', false)
+            ->where('user_id', $user_id)
+            ->update('sys_user');
         return get_db()->affected_rows();
     }
 

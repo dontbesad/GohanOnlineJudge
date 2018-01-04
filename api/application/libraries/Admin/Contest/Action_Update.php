@@ -79,26 +79,28 @@ class Action_Update {
             ];
         }
 
-        $orig_problem_list = Oj::get_problem_list_by_contest($post_data['contest_id']); //原先的题目
-        if (!empty($orig_problem_list)) {
-            //原先的题目比现在的题目多
-            if (empty($problem_list)) {
-                throw new Exception('比赛题目为空(比赛题目跟原先相比不能减少,只能调换顺序或者增加)', 400);
-            } else {
-                $problem_id_arr = array_column($problem_list, 'problem_id');
-                foreach ($orig_problem_list as $problem) {
-                    if (!in_array($problem['problem_id'], $problem_id_arr)) {
-                        throw new Exception($problem['problem_id'].'号题目缺少(比赛题目跟原先相比不能减少,只能调换顺序或者增加)', 400);
-                    }
-                }
-            }
-        }
-
         if (count($problem_list) > 16) {
             throw new Exception('比赛题目数量不得超过16个', 100);
         }
 
-        $post_data['problem_list'] = $problem_list;
+        $orig_problem_list = Oj::get_problem_list_by_contest($post_data['contest_id']); //原先的题目
+        if (!empty($orig_problem_list)) {
+            //原先的题目比现在的题目多
+            if (empty($problem_list)) {
+                throw new Exception('比赛题目为空(比赛题目跟原先相比不能减少,只能在原先的顺序基础上增加)', 400);
+            } else {
+                $problem_id_arr = array_column($problem_list, 'problem_id');
+                foreach ($orig_problem_list as $problem) {
+                    $index = ord($problem['order_id']) - 65;
+                    if (empty($problem_list[$index])) { //post与数据库 不能一一对应
+                        throw new Exception($problem['problem_id'].'号题目缺少(比赛题目跟原先相比不能减少,只能在原先的顺序基础上增加)', 400);
+                    }
+                    unset($problem_list[$index]);
+                }
+            }
+        }
+
+        $post_data['problem_list'] = $problem_list; //新增的题目
 
         return $post_data;
     }
@@ -114,13 +116,14 @@ class Action_Update {
 
         Oj::update_contest($contest_id, $data);
 
+        $orig_problem_list = Oj::get_problem_list_by_contest($contest_id);
+
         if (!empty($problem_list)) {
-            $index = 0;
+            $index = count($orig_problem_list);;
             foreach ($problem_list as &$problem) {
                 $problem['order_id']   = self::ORDER_LIST[$index++];
                 $problem['contest_id'] = $contest_id;
             }
-            Oj::delete_contest_problem($contest_id);
             Oj::insert_contest_problem($problem_list);
         }
 

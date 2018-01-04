@@ -87,7 +87,7 @@ defined('EXIT__AUTO_MAX')      OR define('EXIT__AUTO_MAX', 125); // highest auto
 /**
  * oj常量
  */
-defined('OJ_UPLOAD_DATA_DIR')       OR define('OJ_UPLOAD_DATA_DIR', '/home/yy/web/OJ/Judge/data/'); //oj题目数据目录
+defined('OJ_UPLOAD_DATA_DIR')       OR define('OJ_UPLOAD_DATA_DIR', '/home/judge/data/'); //oj题目数据目录
 defined('OJ_UPLOAD_IMAGE_DIR')      OR define('OJ_UPLOAD_IMAGE_DIR', '/home/yy/web/OJ/upload/');    //oj题目图片目录
 defined('OJ_IMAGE_URL')             OR define('OJ_IMAGE_URL', '/OJ/upload/'); //oj图片前缀链接
 defined('OJ_IMAGE_MAX_SIZE')        OR define('OJ_IMAGE_MAX_SIZE', 368640); //oj单个图片最大上传大小360k

@@ -1,11 +1,14 @@
 #include <time.h>
 #include <stdio.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <sys/param.h>
+#include <sys/types.h>
 #include "json/cJSON.h" /* json */
 #include <hiredis/hiredis.h> /* installed hiredis */
 /* gcc -o gohan gohan_redis.c json/cJSON.c -lhiredis -lpthread */
@@ -39,6 +42,7 @@ int pthread_amount = 0;
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER; //线程锁
 
+void daemon_init();
 void log_msg();
 void gohan_init();
 void read_config_file(char *, char *);
@@ -539,9 +543,38 @@ void gohan() {
 
 }
 
+void daemon_init() {
+    pid_t pid = fork();
+
+    if (pid < 0) {
+        log_msg("Error", "daemon init error");
+        exit(-1);
+    } else if (pid > 0) {
+        exit(0);
+    }
+
+    setsid();
+
+    chdir(g_config.workdir);
+
+    umask(0);
+
+    close(0);
+    close(1);
+    close(2);
+
+    int fd = open( "/dev/null", O_RDWR );
+	dup2( fd, 0 );
+	dup2( fd, 1 );
+	dup2( fd, 2 );
+}
+
 int main()
 {
+
     gohan_init();
+    daemon_init();
+
     gohan();
 
     return 0;

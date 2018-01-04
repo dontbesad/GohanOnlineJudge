@@ -5,6 +5,7 @@ var api_list = {
     status: api_root + 'index.php/problem/status/',
     problemlist: api_root + 'index.php/problem/list/',
     contestlist: api_root + 'index.php/contest/list/',
+    recentcontest: api_root + 'index.php/contest/recent_contest/',
     ranklist: api_root + 'index.php/problem/ranklist/',
     other: 'c',
 
@@ -46,6 +47,7 @@ var require = {
             case 'status':
             case 'problemlist':
             case 'contestlist':
+            case 'recentcontest':
             case 'ranklist':
             case 'other':
                 $('#'+html_name).addClass("active");
@@ -107,6 +109,9 @@ var require = {
                         require.show_contestlist(data, page, size);
                         require.pagination(data.num, page, size);
                         break;
+                    case 'recentcontest':
+                        require.show_recentcontest(data);
+                        break
                     case 'ranklist':
                         require.show_ranklist(data);
                         require.pagination(data.num, page, size);
@@ -262,6 +267,25 @@ var require = {
         $('#container').html(str)
     },
 
+    show_recentcontest: function(data) {
+        var data = data.list;
+        var str = '<table class="table table-hover table-bordered">';
+        str += '<tr class="success"><th>OJ</th><th>Name</th><th>Start Time</th><th>Week</th><th>Access</th></tr>';
+        $.each(data, function(index, value) {
+            str += '<tr>';
+            str += '<td>'+value.oj+'</td>';
+            str += '<td><a href="'+value.link+'">'+value.name+'</a></td>';
+            str += '<td>'+value.start_time+'</td>';
+            str += '<td>'+value.week+'</td>';
+            str += '<td>'+value.access+'</td>';
+            str += '</tr>';
+        });
+        str += '</table>';
+        str += '<span style="float:right;">本数据来源于<a href="http://contests.acmicpc.info/contests.json">acmicpc.info</a></span>';
+
+        $('#container').html(str);
+    },
+
     show_ranklist: function(data, page=1, size=10) {
         var data = data.list;
         var str = '<table class="table table-hover table-bordered">';
@@ -275,7 +299,7 @@ var require = {
             str += '<td>' + value.nickname + '</td>';
             str += '<td>' + value.solved_num + '</td>';
             str += '<td>' + value.submit_num + '</td>';
-            
+
             str += '</tr>';
 
         });

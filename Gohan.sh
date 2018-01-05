@@ -14,6 +14,7 @@ sudo chown -R judge $OJ_WORKDIR
 #对服务器用户设置特殊权限
 sudo setfacl -b -R $OJ_DATADIR
 sudo setfacl -m u:$SERVER_USER:rwx -R $OJ_DATADIR
+setfacl -m u:nginx:rwx /home/judge
 
 sudo gcc ./core/gohan_compiler.c -o $OJ_COMPILER
 

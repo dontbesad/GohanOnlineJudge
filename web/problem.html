@@ -8,7 +8,7 @@
     </head>
     <body>
         <div id="top">
-            <img src="/OJ/web/image/top.png">
+            <img src="./image/top.png">
         </div>
 
 
@@ -125,7 +125,7 @@
             }
             var id = get_url_param('pid');
             $.ajax({
-                url: '/OJ/api/index.php/problem/info/' + id,
+                url: '../api/index.php/problem/info/' + id,
                 type: 'GET',
                 contentType: 'application/json; charset=utf-8',
                 success: function(response) {

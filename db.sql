@@ -21,7 +21,6 @@ CREATE TABLE `sys_solution` (
 ALTER TABLE `sys_solution` ADD INDEX i_problem_id(`problem_id`);
 ALTER TABLE `sys_solution` ADD INDEX i_user_id(`user_id`);
 ALTER TABLE `sys_solution` ADD INDEX i_contest_id(`contest_id`);
-ALTER TABLE `sys_solution` ADD INDEX i_problem_id(`problem_id`);
 ALTER TABLE `sys_solution` ADD INDEX i_result(`result`);
 ALTER TABLE `sys_solution` ADD INDEX i_language(`language`);
 
@@ -87,8 +86,8 @@ CREATE TABLE `sys_user` (
     `accepted_num`INT NOT NULL DEFAULT 0,
     `valid`       INT(2) DEFAULT 1 #默认有效
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
-ALTER TABLE `sys_user` ADD INDEX i_school(`solved_num`);
-ALTER TABLE `sys_user` ADD INDEX i_school(`submit_num`);
+ALTER TABLE `sys_user` ADD INDEX i_solved(`solved_num`);
+ALTER TABLE `sys_user` ADD INDEX i_submit(`submit_num`);
 
 
 #比赛注册用户
@@ -106,27 +105,18 @@ ALTER TABLE `sys_contest_user` ADD INDEX i_contest_user(`contest_id`, `user_id`)
 ALTER TABLE `sys_contest_user` ADD INDEX i_penalty(`penalty`);
 ALTER TABLE `sys_contest_user` ADD INDEX i_solved_num(`solved_num`);
 
-
--- CREATE TABLE `sys_log_login` (
---     `id`       INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
---     `user_id`  INT NOT NULL DEFAULT 0,
---     `ip`       VARCHAR(20) DEFAULT '',
---     `log_time` DATETIME DEFAULT CURRENT_TIMESTAMP
--- ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
--- ALTER TABLE `sys_log_login` ADD INDEX i_user_id(`user_id`);
-
 CREATE TABLE `cfg_user_role` (
     `id`      INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `user_id` INT NOT NULL DEFAULT 0,
     `role_id` INT NOT NULL DEFAULT 0
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 ALTER TABLE `cfg_user_role` ADD INDEX i_user_id(`user_id`);
 ALTER TABLE `cfg_user_role` ADD INDEX i_role_id(`role_id`);
 
 CREATE TABLE `cfg_role` (
     `role_id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `name`    VARCHAR(50) NOT NULL DEFAULT ''
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `cfg_role_rule` (
     `id`      INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -157,6 +147,13 @@ INSERT INTO `cfg_user_role`(`user_id`, `role_id`) VALUES(1, 1), (1, 2), (1, 3);
 
 
 
+-- CREATE TABLE `sys_log_login` (
+--     `id`       INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+--     `user_id`  INT NOT NULL DEFAULT 0,
+--     `ip`       VARCHAR(20) DEFAULT '',
+--     `log_time` DATETIME DEFAULT CURRENT_TIMESTAMP
+-- ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+-- ALTER TABLE `sys_log_login` ADD INDEX i_user_id(`user_id`);
 
 -- cfg_language, cfg_result
 -- sys_solution - result:

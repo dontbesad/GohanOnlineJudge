@@ -1,4 +1,4 @@
-# Gohan-OnlineJudge
+# Gohan Online Judge
 
 ## Gohan介绍
 Gohan-OnlineJudge是基于C+PHP语言的在线评测系统

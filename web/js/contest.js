@@ -9,6 +9,25 @@ var contest = {
         'contest_register': '../api/index.php/contest/register',
     },
     init: function() {
+        window.addEventListener("popstate", function() {
+            console.log('pop');
+
+            if (location.href.indexOf('#') > 0) {
+                var action = location.href.split('#')[1];
+                $('#contest_header li').each(function(i) {
+                    $(this).removeClass('active');
+                });
+                if (action.split('-')[0] == 'problem') {
+                    $('#contest_header a[href="#problem-list"]').parent().addClass('active');
+                } else if (action == 'status') {
+                    $('#contest_header a[href="#status"]').parent().addClass('active');
+                } else if (action == 'rank') {
+                    $('#contest_header a[href="#rank"]').parent().addClass('active');
+                }
+                contest.load(action);
+            }
+        });
+
         contest.index(); //比赛基本信息
         contest.submit_source();
 
@@ -25,14 +44,14 @@ var contest = {
             contest.load(action);
         }
 
-        $('#contest_header li').click(function(x) {
+        /*$('#contest_header li').click(function(x) {
             $('#contest_header li').each(function(i) {
                 $(this).removeClass('active');
             });
             $(this).addClass('active');
             var action = $(this).children().attr('href').split('#')[1];
             contest.load(action);
-        });
+        });*/
 
 
 
@@ -242,17 +261,17 @@ var contest = {
         });
         str += '</table>';
         $('#display').html(str);
-        $('#problem_list a').click(function() {
+        /*$('#problem_list a').click(function() {
             var action = $(this).attr('href').split('#')[1];
             contest.load(action);
-        });
+        });*/
 
     },
     show_status: function(data) {
         //console.log(data);
         var data = data.list;
         var str = '<table class="table table-hover table-bordered">';
-        str += '<tr class="success"><th>比赛提交号</th><th>用户</th><th>比赛题号</th><th>状态</th><th>运行时间(MS)</th><th>运行内存(KB)</th><th>代码长度</th><th>语言</th><th>提交时间</th></tr>';
+        str += '<tr class="success"><th>提交号</th><th>用户</th><th>题号</th><th>状态</th><th>运行时间(MS)</th><th>运行内存(KB)</th><th>代码长度</th><th>语言</th><th>提交时间</th></tr>';
         $.each(data, function(index, value) {
             str += '<tr>';
             str += '<td>' + value['solution_id'] + '</td>';
@@ -260,25 +279,28 @@ var contest = {
             str += '<td><a href="?cid='+ value['contest_id'] +'#problem-'+value['order_id']+'">' + value['order_id'] + '</a></td>';
             if (value['result'] == 'Accepted') {
                 str += '<td style="color:green">Accepted</td>';
+            } else if (value['result'] == 'Compilation Error') {
+                str += '<td><a style="color:purple" href="'+value['solution_id']+'" data-toggle="modal" data-target="#show_ce">Compilation Error</td>';
             } else {
                 str += '<td style="color:red">' + value['result'] + '</td>';
             }
             str += '<td>' + value['runtime'] + '</td>';
             str += '<td>' + value['memory'] + '</td>';
             str += '<td>' + value['code_length'] + '</td>';
-            str += '<td>' + value['language'] + '</td>';
+            str += '<td><a href="' + value['solution_id'] + '" data-toggle="modal" data-target="#show_code">'+value["language"]+'</a></td>';
             str += '<td>' + value['submit_time'] + '</td>';
             str += '</tr>';
 
         });
         str += '</table>';
-
         $('#display').html(str);
+        require.show_source_code();
+        require.show_compilation_error();
 
-        $('#display table a').click(function(x) {
+        /*$('#display table a').click(function(x) {
             var action = $(this).attr('href').split('#')[1];
             contest.load(action);
-        });
+        });*/
     },
     contest_register: function() {
         $('#btn_contest_register').click(function() {

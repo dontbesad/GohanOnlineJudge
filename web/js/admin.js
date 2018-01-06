@@ -69,6 +69,12 @@ var admin = {
 
         admin.quit();
 
+        window.addEventListener("popstate", function() {
+            console.log('pop');
+            var action = location.href.split('#')[1];
+            admin.load(action);
+        });
+
         $('#panel-111 .list-group a').bind('click', function() {
             var action = $(this).attr('href').split("#")[1];
             //history.pushState({ action: action }, NULL, "#" + action);
@@ -249,6 +255,7 @@ var admin = {
     problem_update_show: function() {
         $('#container #problem_list .btn-warning').bind('click', function(e) {
             //alert($(this).attr('data-link'));
+            history.pushState({ action: "problem-update" }, "problem update", location.href.split("#")[0] + "#problem-update");
             var problem_id = $(this).attr('data-link');
             $.get('./problem_add.html', function(data) {
                 $('#container').html(data);

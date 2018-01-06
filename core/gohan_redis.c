@@ -316,15 +316,16 @@ void gohan_core(int runid, int solution_id, int problem_id, int language, int ti
         fclose(fp);
     }
 
+    chdir(runpath); //修改进程当前的工作目录
     //不同语言的编译命令
     switch (language) {
         case 1:
-            sprintf(compiler_cmd, "%s %d %s/%s \"gcc %s/%s -o %s/%s 2> %s/ce.txt\"",
-                g_config.compiler, compile_time, runpath, exec, runpath, source, runpath, exec, runpath);
+            sprintf(compiler_cmd, "%s %d %s \"gcc %s -o %s 2> ce.txt\"",
+                g_config.compiler, compile_time, exec, source, exec);
             break;
         default:
-            sprintf(compiler_cmd, "%s %d %s/%s \"g++ %s/%s -o %s/%s 2> %s/ce.txt\"",
-                g_config.compiler, compile_time, runpath, exec, runpath, source, runpath, exec, runpath);
+            sprintf(compiler_cmd, "%s %d %s \"g++ %s -o %s 2> ce.txt\"",
+                g_config.compiler, compile_time, exec, source, exec);
     }
     //这里后期需要修改gohan_judger.c文件中的execl运行可执行文件命令
     sprintf(judger_cmd, "%s %d %d %s/%s %s/%d/data.in %s/%s",
@@ -410,7 +411,7 @@ void get_judge_result(char cmd[LEN], char str[LEN]) {
         fflush(stdout);
         close(fd[0]);
         dup2(fd[1], STDOUT_FILENO);
-
+        //chdir();
         execl("/bin/bash", "bash", "-c", cmd, NULL);
 
     } else {

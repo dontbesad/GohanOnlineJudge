@@ -79,4 +79,15 @@ class Problem extends MY_Controller {
 		$this->json_response($ret);
 	}
 
+	public function compilation_error($solution_id=1) {
+		$this->load->library('Problem/Action_Compilation_Error');
+		try {
+			$ret['data'] = $this->action_compilation_error->execute($solution_id);
+			$ret['code'] = 0;
+		} catch (Exception $e) {
+			$ret['msg']  = $e->getMessage();
+			$ret['code'] = $e->getCode();
+		}
+		$this->json_response($ret);
+	}
 }

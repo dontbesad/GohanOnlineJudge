@@ -1,5 +1,4 @@
-var web_root = '/OJ/web/';
-var api_root = '/OJ/api/';
+var api_root = '../api/';
 var api_list = {
     index: api_root + 'index.php/problem/list/',
     status: api_root + 'index.php/problem/status/',
@@ -10,6 +9,7 @@ var api_list = {
     other: 'c',
 
     source_code: api_root + 'index.php/problem/source_code/',
+    compilation_error: api_root + 'index.php/problem/compilation_error/',
 
     login: api_root + 'index.php/user/login',
     register: api_root + 'index.php/user/register',
@@ -22,7 +22,7 @@ var api_list = {
 
 var load_template = {
     init: function() {
-        $.get(web_root + 'template/top.html', function(data) {
+        $.get('./template/top.html', function(data) {
             $('#top').append(data);
             register.init();
             login.init();
@@ -150,6 +150,8 @@ var require = {
             str += '<td><a href="problem.html?pid='+value['problem_id']+'">' + value['problem_id'] + '</a></td>';
             if (value['result'] == 'Accepted') {
                 str += '<td style="color:green">Accepted</td>';
+            } else if (value['result'] == 'Compilation Error') {
+                str += '<td><a style="color:purple" href="'+value['solution_id']+'" data-toggle="modal" data-target="#show_ce">Compilation Error</td>';
             } else {
                 str += '<td style="color:red">' + value['result'] + '</td>';
             }
@@ -164,6 +166,7 @@ var require = {
         str += '</table>';
         $('#container').html(str);
         require.show_source_code();
+        require.show_compilation_error();
     },
 
     show_source_code: function() {
@@ -186,6 +189,38 @@ var require = {
                         str += '</code>';
                         $('#show_code .modal-body').html(str);
                         $('#show_code').modal('show');
+                    } else {
+                        alert(response.msg);
+                    }
+                },
+                error: function() {
+                    console.log('Error');
+                }
+            });
+            return false;
+        });
+    },
+
+    show_compilation_error: function() {
+
+        var escapeHTML = function(a){
+             a = "" + a;
+             return a.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;").replace(/ /g, "&nbsp;").replace(/\n/g, "<br>");
+        };
+
+        $('a[data-target="#show_ce"]').click(function() {
+            console.log($(this).attr('href'));
+            $.ajax({
+                url: api_list.compilation_error + $(this).attr('href'),
+                type: 'GET',
+                contentType: 'application/json; charset=utf-8',
+                success: function(response) {
+                    if (!response.code) {
+                        var str = '<code>';
+                        str += escapeHTML(response.data.error);
+                        str += '</code>';
+                        $('#show_ce .modal-body').html(str);
+                        $('#show_ce').modal('show');
                     } else {
                         alert(response.msg);
                     }

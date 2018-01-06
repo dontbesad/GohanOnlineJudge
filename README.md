@@ -1,5 +1,14 @@
 # [Gohan Online Judge](http://120.77.241.49/web)
 
+## 演示
+
+[前台地址](http://120.77.241.49/web)
+[后台地址](http://120.77.241.49/web/admin)
+
+管理员账号: admin
+
+管理员密码: gohanoj
+
 ## 介绍
 
 #### `Gohan OJ`基本架构图

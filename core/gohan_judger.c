@@ -217,7 +217,7 @@ void master_process(pid_t child) {
 
 _target:
     g_result.res     = judge_res;
-    g_result.runtime = judge_runtime;
+    g_result.runtime = judge_res == TLE ? g_config.limit_time : judge_runtime;
     g_result.memory  = judge_memory;
     //printf("judge_result: %d, time: %ldMS, mem: %ldKB\n", judge_res, judge_runtime, judge_memory);
     //printf("Max Mem: %ld\n", max_mem);

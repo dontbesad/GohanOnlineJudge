@@ -146,7 +146,7 @@ var require = {
         $.each(data, function(index, value) {
             str += '<tr>';
             str += '<td>' + value['solution_id'] + '</td>';
-            str += '<td>' + value['username'] + '</td>';
+            str += '<td><a href="user.html?uid='+value['user_id']+'">' + value['username'] + '</a></td>';
             str += '<td><a href="problem.html?pid='+value['problem_id']+'">' + value['problem_id'] + '</a></td>';
             if (value['result'] == 'Accepted') {
                 str += '<td style="color:green">Accepted</td>';

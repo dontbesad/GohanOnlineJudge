@@ -378,10 +378,13 @@ var contest = {
                         }
 
                     } else {
-                        str += '<td><strong style="color:Tomato;">+'+value.wa_num+'</strong></td>';
+                        str += '<td><strong style="color:Tomato;">-'+value.wa_num+'</strong></td>';
                     }
                     ++ii;
                 });
+                for (; ii < problem_num; ++ii) {
+                    str += '<td></td>';
+                }
             }
 
             str += '</tr>';

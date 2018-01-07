@@ -75,11 +75,11 @@ var admin = {
             admin.load(action);
         });
 
-        $('#panel-111 .list-group a').bind('click', function() {
-            var action = $(this).attr('href').split("#")[1];
-            //history.pushState({ action: action }, NULL, "#" + action);
-            admin.load(action);
-        });
+        // $('#panel-111 .list-group a').bind('click', function() {
+        //     var action = $(this).attr('href').split("#")[1];
+        //     //history.pushState({ action: action }, NULL, "#" + action);
+        //     admin.load(action);
+        // });
         var action = location.href.split("#")[1];
         admin.load(action);
     },

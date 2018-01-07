@@ -223,7 +223,7 @@ _target:
     //printf("Max Mem: %ld\n", max_mem);
 
     char ret[LEN];
-    sprintf(ret, "{\"code\":%d,\"runtime\":%ld,\"memory\":%ld}", judge_res, judge_runtime, judge_memory);
+    sprintf(ret, "{\"code\":%d,\"runtime\":%ld,\"memory\":%ld}", judge_res, g_result.runtime, judge_memory);
     printf("%s", ret);
     exit(judge_res);
 }
